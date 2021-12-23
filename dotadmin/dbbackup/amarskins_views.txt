@@ -1,0 +1,42 @@
+create or replace view vsalesdet
+as
+select m.xsalessl,m.xdate,m.xwh,m.ztime,m.zid,m.zemail,m.xsalespage,m.xdocno,m.xcus,m.xdelcompany,m.xdelchg,
+m.xadvancetxn,m.xadvanceamt,m.xstatus,c.xsalesdetsl,c.ztime as xtxntime,c.xitemcode,(select xdesc
+from seitem where c.xitemcode=seitem.xitemcode) as xitemdesc,c.xattrtype,
+c.xattrname,c.xcost,c.xrate,c.xqty,c.xvatpct,c.xdisc,c.xsalesman1,c.xcompct1,c.xsalesman2,c.xcompct2
+,c.xsalesman3,c.xcompct3
+from salesmst m, salesdet c where m.xsalessl=c.xsalessl
+
+
+create or replace view vreturndet
+as
+select m.xreturnsl,m.xsalessl,m.xdate,m.xwh,m.ztime,m.zid,m.zemail,m.xdocno,m.xdelcompany,
+m.xstatus,c.xsalesdetsl,c.xreturndetsl,c.ztime as xtxntime,c.xitemcode,(select xdesc
+from seitem where c.xitemcode=seitem.xitemcode) as xitemdesc,c.xattrtype,
+c.xattrname,c.xcost,c.xrate,c.xqty,c.xvatpct,c.xdisc,c.xsalesman1,c.xcompct1,c.xsalesman2,c.xcompct2
+,c.xsalesman3,c.xcompct3
+from salesreturn m, salesreturndet c where m.xreturnsl=c.xreturnsl
+
+create or replace view vimtrn
+AS
+select xtxnsl as xtxnno,ztime,xdate,zemail,xwh,xitemcode,xattrtype,xattrname,xcost,xqty,xsign,xdoctype
+from imrcvissue
+UNION ALL
+select xsalessl as xtxnno,ztime,xdate,zemail,xwh,xitemcode,xattrtype,xattrname,xcost,xqty,-1 as xsign,'Sales Entry' as xdoctype
+from vsalesdet
+UNION ALL
+select xreturnsl as xtxnno,ztime,xdate,zemail,xwh,xitemcode,xattrtype,xattrname,xcost,xqty,1 as xsign,'Sales Return' as xdoctype
+from vreturndet
+
+create or replace view vimstock
+AS
+select xitemcode,xattrtype,xattrname,sum(xqty*xsign) as xstock from vimtrn group by xitemcode,xattrtype,xattrname;
+
+
+CREATE OR REPLACE VIEW vsalescom
+AS
+SELECT xsalessl,ztime,xdate,xsalesman1 as xsalesman,(xrate*xqty) xtotal, xcompct1 as xcompct, ((xrate*xqty)*xcompct1)/100 as xcom FROM `vsalesdet` WHERE (((xrate*xqty)*xcompct1)/100)>0
+UNION ALL
+SELECT xsalessl,ztime,xdate,xsalesman2 as xsalesman,(xrate*xqty) xtotal, xcompct2 as xcompct, ((xrate*xqty)*xcompct2)/100 as xcom FROM `vsalesdet` WHERE ((xrate*xqty)*xcompct2)/100>0
+UNION ALL
+SELECT xsalessl,ztime,xdate,xsalesman3 as xsalesman,(xrate*xqty) xtotal, xcompct3 as xcompct, ((xrate*xqty)*xcompct3)/100 as xcom FROM `vsalesdet` WHERE ((xrate*xqty)*xcompct3)/100>0

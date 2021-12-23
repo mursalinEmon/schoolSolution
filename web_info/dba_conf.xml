@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dbaconf>
+    <dbaccess>
+        <pass>12345</pass>
+        <valid>yes</valid>
+    </dbaccess>
+</dbaconf>

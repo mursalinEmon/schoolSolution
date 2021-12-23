@@ -1,0 +1,34 @@
+/*====================================================
+    ERROR AREA
+ ====================================================*/
+.error-area {
+  position: relative;
+  &:before,
+  &:after {
+    position: absolute;
+    content: '';
+    top: 55px;
+    left: 55px;
+    width: 200px;
+    height: 200px;
+    background-image: url(../images/dots.png);
+    background-position: center;
+    background-size: cover;
+    z-index: -1;
+    @include border-radius(50%);
+    opacity: 0.3;
+  }
+  &:after {
+    bottom: 55px;
+    right: 55px;
+    left: auto;
+    top: auto;
+  }
+}
+
+.error-content {
+  svg {
+    width: 300px;
+    fill: $theme-color-4;
+  }
+}

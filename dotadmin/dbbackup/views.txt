@@ -1,0 +1,689 @@
+
+Important Code Setting view
+---------------------------------------------------
+create or replace view vsecodes 
+AS 
+select bizid,xcodetype,xcode,xdesc,xcoderem from secodes
+UNION ALL
+select bizid,'Tax Code' as xcodetype,xtaxcode as xcode,xtaxcodealt as xdesc,xtaxcodealt as xcoderem from setax
+---------------------------------------------------
+
+
+CREATE OR REPLACE VIEW vmlminfotreedt
+AS
+SELECT m.bizid,m.xrdin,c.bin,m.xpassword,m.xorg,c.bc,c.side,c.stno,c.binpoint,c.centerpoint,c.leftcurpoint,c.rightcurpoint,
+c.upbin,(select xrdin from mlminfo WHERE mlminfo.bizid=c.bizid and mlminfo.distrisl=c.updistrisl) as uprin,
+(select xorg from mlminfo WHERE mlminfo.bizid=c.bizid and mlminfo.distrisl=c.updistrisl) as uplinername,c.upbc,
+c.leftbin,(select xrdin from mlminfo WHERE mlminfo.bizid=c.bizid and mlminfo.distrisl=c.leftdistrisl) as leftrin,
+(select xorg from mlminfo WHERE mlminfo.bizid=c.bizid and mlminfo.distrisl=c.leftdistrisl) as leftbinname,
+(select xrdin from mlminfo WHERE mlminfo.bizid=c.bizid and mlminfo.distrisl=c.rightdistrisl) as rightrin,
+c.rightbin,(select xorg from mlminfo WHERE mlminfo.bizid=c.bizid and mlminfo.distrisl=c.rightdistrisl) as rightbinname,
+c.refbin,(select xrdin from mlminfo WHERE mlminfo.bizid=c.bizid and mlminfo.distrisl=c.refdistrisl) as refrin,
+(select xorg from mlminfo WHERE mlminfo.bizid=c.bizid and mlminfo.distrisl=c.refdistrisl) as referencename,
+m.xfname,m.xmname,m.xdob,m.xadd1,m.xmobile,m.xcity,m.xprovince,m.xpostal,m.membertype FROM mlminfo m, mlmtree c WHERE m.bizid=c.bizid and m.distrisl=c.distrisl and m.xrecflag='Live'
+--------------------------
+
+CREATE OR REPLACE VIEW vosptxndt
+AS
+SELECT xsl as xtxnnum,stno,zemail,bizid,xdate,xrdin,0 as srctax,xamount as amount,xyear,xper,xsign,xtxntype as xtype FROM `osptxn`
+UNION ALL
+SELECT ximsenum as xtxnnum,stno,zemail,bizid,xdate,xrdin,(xsrctaxpct*xspotcom)/100 as srctax,xspotcom-(xsrctaxpct*xspotcom)/100 as amount,xyear,xper,1 as xsign,'Spot Com' as xtype FROM `imsetxn`
+UNION ALL
+SELECT ximsenum as xtxnnum,stno,zemail,bizid,xdate,zemail as xrdin,0 as srctax,xstdprice*xqty as amount,xyear,xper,-1 as xsign,'Corporate Sales' as xtype FROM `imsetxn`
+WHERE xtxntype='Corporate Sales'
+UNION ALL
+SELECT ximreqnum as xtxnnum,stno,zemail,bizid,xdate,xrdin,0 as srctax,xrate*xqty as amount,xyear,xper,-1 as xsign,'Product Order' as xtype FROM `imreqdet`
+UNION ALL
+SELECT xpaynreqnum as xtxnnum,stno,zemail,bizid,xdate,xrdin,0 as srctax,xamount as amount,year(xdate) as xyear,month(xdate) as xper,-1 as xsign,xdoctype as xtype FROM `distpaynreq`
+UNION ALL
+SELECT bin as xtxnnum,stno,zemail,bizid,xdate,xrdin,(xsrctaxpct*xcom)/100 as srctax,xcom-(xsrctaxpct*xcom)/100 as amount,year(xdate) as xyear,month(xdate) as xper,1 as xsign,xcomtype as xtype FROM `mlmtotrep`
+UNION ALL
+SELECT xtxnnum,stno,zemail,bizid,xdate,xrdin,srctax,(xstdprice-xretailprice)*xqty as amount,xyear,xper,xsign,xtype FROM `vcorppriceadjust` where (xstdprice-xretailprice)>0
+
+---------------------------------------------
+
+create or replace view vcorppriceadjust 
+AS 
+SELECT ximsenum as xtxnnum,stno,zemail,bizid,xdate,zemail as xrdin,0 as srctax,(select xstdprice from seitem where imsetxn.bizid=seitem.bizid and seitem.xitemcode=imsetxn.xitemcode) as xretailprice,xstdprice,xqty,xyear,xper,1 as xsign,'Retailer Adjustment' as xtype FROM `imsetxn` WHERE xtxntype='Corporate Sales'
+
+---------------------------
+
+
+CREATE OR REPLACE VIEW vospbal
+AS
+SELECT bizid,xrdin,sum(amount*xsign) as xbalance FROM `vosptxndt` group by bizid,xrdin
+--------------------
+
+CREATE OR REPLACE VIEW vospbaltype
+AS
+SELECT bizid,xrdin,xtype,sum(amount*xsign) as xbalance FROM `vosptxndt` group by bizid,xrdin,xtype
+
+--------------------
+CREATE OR REPLACE VIEW vimtxn
+AS
+select ztime,bizid,xdate,xponum as xdocnum,'Purchase Order' as xdoctype,xitemcode,xitembatch,xwh,xbranch,xproj,xqty,xunitpur as xunit,1 as xsign
+from podet
+UNION ALL
+select ztime,bizid,xdate,xsonum as xdocnum,'Sales Order' as xdoctype,xitemcode,xitembatch,xwh,xbranch,xproj,xqty,xunitsale as xunit,-1 as xsign
+from sodet
+------------------
+CREATE OR REPLACE VIEW vimstock
+AS
+select bizid,xwh,xitemcode,sum(xqtypo*xsignpo) as xqtypo,sum(xqty*xsign) as xqty,sum(xqtyso*xsignso) as xqtyso from vimtrn group by bizid,xwh,xitemcode
+
+
+---------------------
+
+CREATE OR REPLACE VIEW vtotalstock
+AS
+select bizid,xitemcode,sum(xqtypo*xsignpo) as xqtypo,sum(xqty*xsign) as xqty,sum(xqtyreq*xsignreq) as xqtyreq from vimtrn group by bizid,xitemcode
+
+
+---------------------
+CREATE OR REPLACE VIEW vospstockdet
+AS
+select bizid,xcus as xwh,xitemcode,xrate as xstdcost,0 as xstdprice,xqty,1 as xsign, 'Stock Receive' as xdoctype, xsonum as xdocnum from sodet
+UNION ALL
+select bizid,zemail as xwh,xitemcode,xstdcost,xstdprice,xqty, -1 as xsign, "OSP Sale" as xdoctype, ximsenum as xdocnum from imsetxn where xtxntype='Sales'
+UNION ALL
+select bizid,xrdin as xwh,xitemcode,0 as xstdcost,xrate as xstdprice,xqty, 1 as xsign, "Product Order" as xdoctype, ximreqnum as xdocnum from imreqdet
+----------------------------
+CREATE OR REPLACE VIEW vospstock
+AS
+select bizid,xwh,xitemcode,sum(xqty*xsign) as xbalance from vospstockdet group by bizid,xwh,xitemcode
+
+-----------------------
+
+
+CREATE OR REPLACE VIEW `vsalesdt`  AS  select `imsetxn`.`xprefix` AS `xprefix`,`imsetxn`.`bizid` AS `bizid`,`imsetxn`.`ximsenum` AS `ximsenum`,`imsetxn`.`xrow` AS `xrow`,`imsetxn`.`xsup` AS `xsup`,`imsetxn`.`xitemcode` AS `xitemcode`,`imsetxn`.`xdesc` AS `xdesc`,`imsetxn`.`xcat` AS `xcat`,`imsetxn`.`xbrand` AS `xbrand`,`imsetxn`.`xcolor` AS `xcolor`,`imsetxn`.`xsize` AS `xsize`,`imsetxn`.`xsl` AS `xsl`,`imsetxn`.`xcus` AS `xcus`,`imsetxn`.`xcusdt` AS `xcusdt`,`imsetxn`.`xwh` AS `xwh`,`imsetxn`.`xbranch` AS `xbranch`,`imsetxn`.`zemail` AS `zemail`,(select xpricepur from seitem where seitem.xitemcode=imsetxn.xitemcode) AS `xstdcost`,`imsetxn`.`xstdprice` AS `xstdprice`,`imsetxn`.`xqty` AS `xqty`,`imsetxn`.`xsalesprice` AS `xsalesprice`,`imsetxn`.`xuom` AS `xuom`,(`imsetxn`.`xqty` * `imsetxn`.`xsalesprice`) AS `xtotprice`,`imsetxn`.`xdisc` AS `xdisc`,(`imsetxn`.`xqty` * `imsetxn`.`xdisc`) AS `xtotdisc`,`imsetxn`.`xvatpct` AS `xvatpct`,((`imsetxn`.`xsalesprice` * `imsetxn`.`xvatpct`) / 100) AS `xvat`,(((`imsetxn`.`xsalesprice` * `imsetxn`.`xvatpct`) / 100) * `imsetxn`.`xqty`) AS `xtotvat`,(((`imsetxn`.`xqty` * `imsetxn`.`xsalesprice`) + (((`imsetxn`.`xsalesprice` * `imsetxn`.`xvatpct`) / 100) * `imsetxn`.`xqty`)) - (`imsetxn`.`xqty` * `imsetxn`.`xdisc`)) AS `xsalestotal`,`imsetxn`.`xcashamt` AS `xcashamt`,`imsetxn`.`xcardamt` AS `xcardamt`,(`imsetxn`.`xqty` * `imsetxn`.`xpoint`) AS `xpoint`,`imsetxn`.`xbank` AS `xbank`,`imsetxn`.`xdocument` AS `xdocument`,`imsetxn`.`xdocumentrow` AS `xdocumentrow`,`imsetxn`.`xstatus` AS `xstatus`,`imsetxn`.`xsign` AS `xsign`,`imsetxn`.`xdate` AS `xdate`,`imsetxn`.`xyear` AS `xyear`,`imsetxn`.`xper` AS `xper`,`imsetxn`.`xtxntype` AS `xtxntype`,`imsetxn`.`xrecflag` AS `xrecflag` from `imsetxn` where (`imsetxn`.`xtxntype` in ('Corporate Sales','Sales')) ;
+-----------------------
+
+CREATE OR REPLACE VIEW `vpointdt`
+AS 
+select bizid,ximsenum as txnno,stno,xdate,xcus,xqty*xpoint, 1 as xsign,xtxntype from imsetxn
+UNION ALL
+select bizid,bin as txnno,stno,xdate,xcus,xpoint, -1 as xsign,'Placement' as xtxntype  from mlmtree where xcus<>'ABC-777-0001'
+
+
+-----------------------
+
+CREATE OR REPLACE VIEW `vpointcus`
+AS 
+select bizid,xcus,sum(xpoint*xsign) as xpoint from vpointdt group by bizid,xcus
+
+-----------------------
+
+create table imsetxncash (
+xsl serial,
+ztime timestamp,
+bizid int(6),
+ximsenum varchar(20),
+xrow int(2),
+xcus varchar(20),
+xcusdt varchar(100),
+xcashamt double,
+xcardamt double,
+xdisc double,
+xbank varchar(50),
+xtxntype varchar(20),
+xdocument varchar(20),
+xdocumentrow int(4),
+xstatus varchar(20),
+xsign int(1),
+xdate date,
+xyear int(4),
+xper int(2),
+zemail varchar(100),
+xwh varchar(50),
+xbranch varchar(50),
+xprefix varchar(10))
+
+
+
+----------------------------
+CREATE OR REPLACE VIEW `vimreqdet`
+AS
+select m.ztime,m.bizid,m.zemail,m.ximreqnum,m.xdate,m.xrdin,
+(select xorg from mlminfo where m.bizid=mlminfo.bizid and m.xrdin=mlminfo.xrdin) as xreqby,
+(select xmobile from mlminfo where m.bizid=mlminfo.bizid and m.xrdin=mlminfo.xrdin) as xmobile,
+(select xsup from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xsup,
+(select xdesc from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xitemdesc,
+(select xpricepur from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xstdcost,
+(select xunitstk from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xunitstk,
+m.xnote as xdeladd,m.xstatus,m.xbranch,c.xrow,c.stno,c.xitemcode,c.xqty,c.xrate,c.xyear,c.xper
+from imreq m, imreqdet c where m.bizid=c.bizid and m.ximreqnum=c.ximreqnum
+ 
+-------------------------------
+
+
+CREATE TABLE `mlmtotrep` (
+  `xcomsl` bigint(20) UNSIGNED NOT NULL,
+  `ztime` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `bizid` int(6) NOT NULL,
+  `zemail` varchar(100) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Admin',
+  `xdate` date NOT NULL,
+  `stno` int(4) NOT NULL,
+  `distrisl` int(11) DEFAULT NULL,
+  `xrdin` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `bin` int(11) NOT NULL,
+  `mlevel` int(2) DEFAULT NULL,
+  `leftcurpoint` int(10) DEFAULT NULL,
+  `rightcurpoint` int(10) DEFAULT NULL,
+  `leftcstpoint` int(10) DEFAULT NULL,
+  `rightcstpoint` int(10) DEFAULT NULL,
+  `lefttotalpoint` int(10) DEFAULT NULL,
+  `righttotalpoint` int(10) DEFAULT NULL,
+  `executivetype` varchar(30) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `leftcount` int(5) DEFAULT NULL,
+  `rightcount` int(5) DEFAULT NULL,
+  `fullmatch` int(1) DEFAULT NULL,
+  `xcom` double DEFAULT NULL,
+  `xsrctaxpct` double DEFAULT NULL,
+  `xcomtype` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
+  `xrintype` varchar(30) COLLATE utf8_unicode_ci NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+
+ALTER TABLE `mlmtotrep`
+  ADD PRIMARY KEY (`stno`,`bin`,`xcomtype`),
+  ADD UNIQUE KEY `xcomsl` (`xcomsl`),
+  ADD KEY `bin` (`bin`);
+
+ALTER TABLE `mlmtotrep`
+  MODIFY `xcomsl` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT; 
+
+------------------------------------------------------------------
+create or replace view vwithdrawalcashdue
+AS
+select xrdin,xotn,sum(xamount*xsign) as xamount from vwithdrawaldt group by xrdin,xotn
+
+---------------------------------------
+create or replace view vwithdrawaldt
+AS
+select xrdin,xotn,xamount,1 as xsign from distpaynreq where xtype='Cash' UNION ALL select xrdin,xotn,xamount,-1 as xsign from distcashnbankpay where xtype='Cash'
+
+create or replace view vwithdrawaldt
+AS
+select xrdin,xbank,xbranch,xotn,xamount,1 as xsign from distpaynreq where xtype='Cash' UNION ALL select xrdin,xotn,xamount,-1 as xsign from distcashnbankpay where xtype='Cash'
+
+
+
+CREATE OR REPLACE VIEW vsuplierview AS select bizid,ztime,zutime,xemail,zemail,xsup,xcus,xcusdt,
+ximsenum,xrow,xitemcode,xdesc,
+(select xpricepur from seitem where imsetxn.xitemcode=seitem.xitemcode and imsetxn.bizid=seitem.bizid) as xpricepur,
+xsupdt as xoutlet, 
+(select xdesc from sesupoutlet where sesupoutlet.bizid=imsetxn.bizid and sesupoutlet.xsup=imsetxn.xsup and sesupoutlet.xoutlet=imsetxn.xsupdt) as xoutletdesc,
+(select xadd1 from sesupoutlet where sesupoutlet.bizid=imsetxn.bizid and sesupoutlet.xsup=imsetxn.xsup and sesupoutlet.xoutlet=imsetxn.xsupdt) as xoutletadd,
+(select xmobile from sesupoutlet where sesupoutlet.bizid=imsetxn.bizid and sesupoutlet.xsup=imsetxn.xsup and sesupoutlet.xoutlet=imsetxn.xsupdt) as xoutletmobile,
+xqty, xstatus from imsetxn where xstatus in ('Created','Supplier Delivery') and xtxntype='Corporate Sales'
+
+ ---select ximsenum, xrow, xitemcode,xcusdt, xoutlet, (select xadd1 from secus where vsuplierview.bizid=secus.bizid and vsuplierview.xcus=secus.xcus) as xcusadd, (select xmobile from secus where vsuplierview.bizid=secus.bizid and vsuplierview.xcus=secus.xcus) as xcusmobile,xqty,xpricepur,xqty*xpricepur as xtotal from vsuplierview
+
+  CREATE OR REPLACE VIEW vpodet
+  AS
+  SELECT m.bizid,m.xposl,m.ztime,m.xprefix,m.xponum,m.xsup,m.xcorto,m.xlcno,m.xlcdate,m.xpino,m.xpidate,m.xghodate,m.xdeldate,m.xeta,m.xetd,m.xshipterm,m.xshipvia,
+  (select xorg from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xorg,
+  (select xadd1 from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xsupadd,
+  (select xphone from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xsupphone,
+  m.xsupdoc,m.xnotes,c.xwh,m.xnote,c.xbranch,c.xproj,m.xstatus,c.xpodetsl,c.xdate,c.xrow,c.xitemcode,year(m.xdate) as xyear,month(m.xdate) as xper,
+  (select xdesc from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xitemdesc,
+  c.xitembatch,c.xqty,c.xratepur,c.xtypestk,c.xtaxrate,c.xunitpur,c.xcur,c.xexch,c.xconversion,c.xunitstk,c.xdisc,c.xqty*c.xratepur as xtotal,c.xqty*((c.xtaxrate*c.xratepur)/100) as xtotaltax,
+  c.xdisc*c.xqty as xtotaldisc,c.zemail FROM `pomst` m, podet c WHERE m.bizid=c.bizid and m.xponum=c.xponum
+
+CREATE OR REPLACE VIEW vpogrndet
+AS
+SELECT m.bizid,m.xposl,m.ztime,m.xponum,m.xsup,
+(select xorg from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xorg,
+(select xadd1 from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xsupadd,
+(select xphone from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xsupphone,
+m.xsupdoc,c.xwh,c.xbranch,c.xproj,m.xstatus,c.xdate,c.xrow,c.xitemcode,
+(select xdesc from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xitemdesc,
+c.xitembatch,c.xqty,
+COALESCE((select sum(xqtypur) from pogrndet where c.bizid=pogrndet.bizid and c.xponum=pogrndet.xponum and c.xitemcode=pogrndet.xitemcode),0) as xgrnqty,
+c.xratepur,c.xtaxrate,c.xunitpur,c.xtypestk,c.xconversion,c.xunitstk,c.xdisc,c.xqty*c.xratepur as xtotal,c.xqty*((c.xtaxrate*c.xratepur)/100) as xtotaltax,
+c.xdisc*c.xqty as xtotaldisc,c.zemail FROM `pomst` m, podet c WHERE m.bizid=c.bizid and m.xponum=c.xponum
+
+CREATE OR REPLACE VIEW vpomilestone
+AS
+SELECT bizid,xponum,xsup,xorg,
+if (sum(xqty)-sum(xgrnqty)>0, 'Milestone Not Completed', 'Milestone Completed') as xmilestone 
+FROM `vpogrndet` group by  bizid,xponum,xsup,xorg
+
+CREATE OR REPLACE VIEW vgrndet
+AS
+SELECT m.bizid,m.xgrnsl,m.ztime,m.xgrnnum,m.xponum,m.xsup,
+(select xorg from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xorg,
+(select xadd1 from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xsupadd,
+(select xphone from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xsupphone,
+m.xsupdoc,c.xwh,c.xbranch,c.xproj,m.xstatus,c.xdate,c.xrow,c.xitemcode,
+(select xdesc from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xitemdesc,
+c.xitembatch,c.xqtypur,c.xextqty,c.xqty,c.xrate,c.xstdcost,c.xtaxrate,c.xunitpur,c.xconversion,c.xunitstk,c.xtypestk,c.xdisc,c.xqtypur*c.xrate as xtotal,c.xqtypur*((c.xtaxrate*c.xrate)/100) as xtotaltax,
+c.xdisc*c.xqtypur as xtotaldisc,c.zemail FROM `pogrnmst` m, `pogrndet` c WHERE m.bizid=c.bizid 
+and m.xgrnnum=c.xgrnnum
+
+
+
+CREATE OR REPLACE VIEW vporeturndet
+AS
+SELECT m.bizid,m.xporeturnsl,m.ztime,m.xporeturnnum,m.xgrnnum,m.xsup,
+(select xorg from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xorg,
+(select xadd1 from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xsupadd,
+(select xphone from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xsupphone,
+m.xsupdoc,c.xwh,c.xbranch,c.xproj,m.xstatus,c.xdate,c.xporeturndetsl,c.xrow,c.xitemcode,
+(select xdesc from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xitemdesc,
+c.xitembatch,c.xqty,c.xextqty,
+c.xratepur,(c.xqty*c.xratepur)/(c.xqty+c.xextqty) as xstdcost,c.xtaxrate,c.xunitpur,c.xtypestk,c.xconversion,c.xunitstk,c.xdisc,c.xqty*c.xratepur as xtotal,c.xqty*((c.xtaxrate*c.xratepur)/100) as xtotaltax,
+c.xdisc*c.xqty as xtotaldisc,c.zemail FROM `poreturn` m, `poreturndet` c WHERE m.bizid=c.bizid 
+and m.xporeturnnum=c.xporeturnnum
+
+CREATE OR REPLACE VIEW vgrnreturndet
+AS
+SELECT m.bizid,m.xgrnsl,m.ztime,m.xgrnnum,m.xponum,m.xsup,
+(select xorg from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xorg,
+(select xadd1 from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xsupadd,
+(select xphone from sesup where m.bizid=sesup.bizid and m.xsup=sesup.xsup) as xsupphone,
+m.xsupdoc,c.xwh,c.xbranch,c.xproj,m.xstatus,c.xdate,c.xrow,c.xitemcode,
+(select xdesc from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xitemdesc,
+c.xitembatch,c.xqtypur,c.xextqty,
+COALESCE((select sum(xqty) from poreturndet where c.bizid=poreturndet.bizid and c.xgrnnum=poreturndet.xgrnnum and c.xrow=poreturndet.xrowtrn and c.xitemcode=poreturndet.xitemcode),0) as xreturnqty,
+c.xrate,(c.xqtypur*c.xrate)/(c.xqtypur+c.xextqty) as xstdcost,c.xtaxrate,c.xunitpur,c.xconversion,c.xunitstk,c.xdisc,c.xqtypur*c.xrate as xtotal,c.xqtypur*((c.xtaxrate*c.xrate)/100) as xtotaltax,
+c.xdisc*c.xqtypur as xtotaldisc,c.zemail FROM `pogrnmst` m, `pogrndet` c WHERE m.bizid=c.bizid 
+and m.xgrnnum=c.xgrnnum
+
+create or replace view vpmfgrdet
+AS
+select m.xfgrsl,m.zemail,m.ztime,m.bizid,m.xfgrnum,m.xitemcode,m.xbatchno,m.xexpdate,m.xdate,m.xqty,m.xstdcost,m.xwh,m.xbranch,m.xproj,
+c.xfgrdetsl,c.xrow,c.xrawitem, c.xwh as xrawwh, c.xqty*m.xqty as xrawqty, c.xstdcost as xrawcost, c.xunit,c.xitemtype from 
+pmfgrmst m, pmfgrdet c where m.bizid=c.bizid and m.xfgrnum=c.xfgrnum
+
+
+CREATE OR REPLACE VIEW vimreqndel
+AS
+SELECT bizid,xrdin,ximreqnum,xrow,xitemcode,xqty,1 as xsign FROM `imreqdet`
+UNION ALL
+SELECT bizid,xrdin,ximreqnum,xrow,xitemcode,xqty,-1 as xsign FROM `imreqdeldet`
+
+
+CREATE OR REPLACE VIEW vimreqdelbal
+AS
+select bizid,xrdin,ximreqnum,xrow,xitemcode,sum(xqty*xsign) as xbal
+from
+vimreqndel group by bizid,xrdin,ximreqnum,xrow,xitemcode
+
+CREATE OR REPLACE VIEW vimreqdeldet
+AS	
+SELECT m.bizid,m.ztime,m.xreqdelnum,m.xsonum,m.xcus,m.xgrossdisc,
+(select xsup from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xsup,
+c.xwh,c.xbranch,c.xproj,m.xstatus,c.xdate,c.xrow,c.xitemcode,
+(select xdesc from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xitemdesc,
+c.xitembatch,c.xqty,c.xrate,c.xstdcost,c.xratepur,c.xunit,c.xtypestk,c.xtaxrate,((c.xtaxrate*c.xrate)/100)*c.xqty as xtaxamt,c.xdisc,c.xdisc*c.xqty as xdiscamt,c.zemail FROM `imreqdelmst` m, `imreqdeldet` c WHERE m.bizid=c.bizid and m.xreqdelnum=c.xreqdelnum
+
+create or replace view vimtransferdet
+as
+select m.`ztime`,m.`bizid`,m.`zemail`,m.`xdate`,m.`ximptnum`,c.`xdoctype`,m.`xstatus`,m.`xyear`,m.`xper`,
+m.`xsup`,
+c.`xrow`,c.`xwh`,c.`xtxnwh`,
+m.`xbranch`,m.`xproj`,c.`xitemcode`,c.`xitembatch`,(select xdesc from seitem where seitem.xitemcode=c.xitemcode and seitem.bizid=c.bizid) as xitemdesc,
+c.`xqty`,c.`xunit`, c.`xstdcost`,c.`xsign` from imtransfer m, imtransferdet c where m.bizid=c.bizid and m.ximptnum=c.ximptnum
+
+
+CREATE OR REPLACE VIEW vimtrn
+AS
+SELECT `ztime`,`bizid`,`xdate`,`xgrnnum` as xtxnnum,`xsup`,`xrow`,`xwh`,`xbranch`,`xproj`,`xitemcode`,`xitembatch`,
+`xitemdesc`,0 as xqtypo,xunitpur,(`xqtypur`*`xconversion`)+xqty+`xextqty` as xqty,`xextqty`,xunitpur as xunit,0 as xqtyso,`xrate`,
+`xconversion`,`xstdcost`,0 as xstdprice,`xdisc`,
+'Goods Receipt Note' as xdoctype,zemail,0 as xsignpo,1 as xsign, 0 as xsignso,'' as xcolor,'' as xsize
+FROM `vgrndet` WHERE `xstatus`='Confirmed' and xtypestk='Stocking'
+UNION ALL
+SELECT `ztime`,`bizid`,`xdate`,`xsonum` as xtxnnum,
+(select xsup from seitem where vsalesdodt.bizid=seitem.bizid and vsalesdodt.xitemcode=seitem.xitemcode) as xsup,
+`xrow`,xwh,
+'CW' as xbranch,'CW' as xproj,`xitemcode`,'' as xitembatch,
+(select xdesc from seitem where vsalesdodt.bizid=seitem.bizid and vsalesdodt.xitemcode=seitem.xitemcode) as xitemdesc,
+0 as xqtypo,'' as xunitpur,xqty,0 as `xextqty`,xunitsale as xunit,0 as xqtyso,0 as `xratepur`,
+1 as xconversion,0 as xstdcost, xrate as xstdprice,0 as `xdisc`,
+'Sales Order' as xdoctype,'' as zemail,0 as xsignpo,0 as xsign, 1 as xsignso,'' as xcolor,'' as xsize FROM vsalesdodt WHERE `xstatus`='Confirmed' and xtypestk='Stocking'
+UNION ALL
+SELECT `ztime`,`bizid`,`xdate`,`xreqdelnum` as xtxnnum,`xsup`,`xrow`,`xwh`,`xbranch`,`xproj`,`xitemcode`,`xitembatch`,
+`xitemdesc`,0 as xqtypo,'' as xunitpur,`xqty`,0 as xextqty,xunit,0 as xqtyso,0 as `xratepur`,
+1 as xconversion,`xstdcost`,`xrate` as xstdprice,`xdisc`,
+'Delivery Order' as xdoctype,zemail,0 as xsignpo,-1 as xsign, 0 as xsignso,'' as xcolor,'' as xsize
+FROM `vimreqdeldet` WHERE `xstatus`='Confirmed' and xtypestk='Stocking'
+---------------------------------
+OLD
+---------------------------------
+CREATE OR REPLACE VIEW vimtrn
+AS
+SELECT `ztime`,`bizid`,`xdate`,`xponum` as xtxnnum,`xsup`,`xrow`,`xwh`,`xbranch`,`xproj`,`xitemcode`,`xitembatch`,`xitemdesc`,
+(`xqty`-`xgrnqty`) as xqtypo,xunitpur,0 as xqty,
+0 as xextqty,'' as xunitstk, 0 as xqtyso,`xrate`, `xconversion`,0 as xstdcost, 0 as xstdprice,`xdisc`,'Purchase Order' as xdoctype,zemail,
+1 as xsignpo,0 as xsign, 0 as xsignso,'' as xcolor,'' as xsize
+FROM `vpogrndet` WHERE `xstatus`='Confirmed'	and xtypestk='Stocking'
+UNION ALL
+SELECT `ztime`,`bizid`,`xdate`,`xgrnnum` as xtxnnum,`xsup`,`xrow`,`xwh`,`xbranch`,`xproj`,`xitemcode`,`xitembatch`,
+`xitemdesc`,0 as xqtypo,xunitpur,(`xqtypur`*`xconversion`)+`xextqty` as xqty,`xextqty`,xunitpur as xunit,0 as xqtyso,`xratepur`,
+`xconversion`,`xstdcost`,0 as xstdprice,`xdisc`,
+'Goods Receipt Note' as xdoctype,zemail,0 as xsignpo,1 as xsign, 0 as xsignso,'' as xcolor,'' as xsize
+FROM `vgrndet` WHERE `xstatus`='Confirmed' and xtypestk='Stocking'
+UNION ALL
+SELECT `ztime`,`bizid`,`xdate`,`xreqdelnum` as xtxnnum,`xsup`,`xrow`,`xwh`,`xbranch`,`xproj`,`xitemcode`,`xitembatch`,
+`xitemdesc`,0 as xqtypo,'' as xunitpur,`xqty`,0 as xextqty,xunit,0 as xqtyso,0 as `xratepur`,
+1 as xconversion,`xstdcost`,`xrate` as xstdprice,`xdisc`,
+'Delivery Order' as xdoctype,zemail,0 as xsignpo,-1 as xsign, 0 as xsignso,'' as xcolor,'' as xsize
+FROM `vimreqdeldet` WHERE `xstatus`='Confirmed' and xtypestk='Stocking'
+UNION ALL
+SELECT `ztime`,`bizid`,`xdate`,`xsonum` as xtxnnum,
+(select xsup from seitem where vsalesdodt.bizid=seitem.bizid and vsalesdodt.xitemcode=seitem.xitemcode) as xsup,
+`xrow`,xwh,
+'CW' as xbranch,'CW' as xproj,`xitemcode`,'' as xitembatch,
+(select xdesc from seitem where vsalesdodt.bizid=seitem.bizid and vsalesdodt.xitemcode=seitem.xitemcode) as xitemdesc,
+0 as xqtypo,'' as xunitpur,0 as xqty,0 as `xextqty`,xunitsale as xunit,`xqty`-`xdoqty` as xqtyso,0 as `xratepur`,
+1 as xconversion,0 as xstdcost, xrate as xstdprice,0 as `xdisc`,
+'Sales Order' as xdoctype,'' as zemail,0 as xsignpo,0 as xsign, 1 as xsignso,'' as xcolor,'' as xsize FROM vsalesdodt WHERE `xstatus`='Confirmed' and xtypestk='Stocking'
+UNION ALL
+SELECT `ztime`,`bizid`,`xdate`,`xfgrnum` as xtxnnum,
+(select xsup from seitem where pmfgrmst.bizid=seitem.bizid and pmfgrmst.xitemcode=seitem.xitemcode) as xsup,
+xfgrsl as `xrow`,xwh,
+xbranch,xproj,`xitemcode`,xbatchno as xitembatch,
+(select xdesc from seitem where pmfgrmst.bizid=seitem.bizid and pmfgrmst.xitemcode=seitem.xitemcode) as xitemdesc,
+0 as xqtypo,'' as xunitpur,xqty,0 as `xextqty`,'' as xunit,0 as xqtyso,0 as `xratepur`,
+1 as xconversion,xstdcost, 0 as xstdprice,0 as `xdisc`,
+'Production Receive' as xdoctype,zemail,0 as xsignpo,1 as xsign, 0 as xsignso,'' as xcolor,'' as xsize FROM pmfgrmst
+UNION ALL
+SELECT `ztime`,`bizid`,`xdate`,`xfgrnum` as xtxnnum,
+(select xsup from seitem where vpmfgrdet.bizid=seitem.bizid and vpmfgrdet.xitemcode=seitem.xitemcode) as xsup,
+`xrow`,xrawwh as xwh,
+xbranch,xproj,`xrawitem`,xbatchno as xitembatch,
+(select xdesc from seitem where vpmfgrdet.bizid=seitem.bizid and vpmfgrdet.xrawitem=seitem.xitemcode) as xitemdesc,
+0 as xqtypo,'' as xunitpur,xrawqty,0 as `xextqty`,'' as xunit,0 as xqtyso,0 as `xratepur`,
+1 as xconversion,xrawcost, 0 as xstdprice,0 as `xdisc`,
+'Production Issue' as xdoctype,zemail,0 as xsignpo,-1 as xsign, 0 as xsignso,'' as xcolor,'' as xsize FROM vpmfgrdet where xitemtype='Raw Material'
+UNION ALL
+SELECT `ztime`,`bizid`,`xdate`,`xporeturnnum` as xtxnnum,
+`xsup`,
+`xrow`,xwh,
+xbranch,xproj,`xitemcode`,xitembatch,
+xitemdesc,
+0 as xqtypo,xunitpur,xqty,0 as `xextqty`,xunitstk as xunit,0 as xqtyso,`xratepur`,
+1 as xconversion,xstdcost, 0 as xstdprice,`xdisc`,
+'Purchase Return' as xdoctype,zemail,0 as xsignpo,-1 as xsign, 0 as xsignso,'' as xcolor,'' as xsize FROM vporeturndet 
+where xstatus='Confirmed' and xtypestk='Stocking'
+UNION ALL
+SELECT `ztime`,`bizid`,`xdate`,`xdoreturnnum` as xtxnnum,
+`xsup`,
+`xrow`,xwh,
+xbranch,xproj,`xitemcode`,xitembatch,
+xitemdesc,
+0 as xqtypo,'' as xunitpur,xqty,0 as `xextqty`,xunit,0 as xqtyso,`xratepur`,
+1 as xconversion,xstdcost, 0 as xstdprice,`xdisc`,
+'Delivery Return' as xdoctype,zemail,0 as xsignpo,1 as xsign, 0 as xsignso,'' as xcolor,'' as xsize FROM vimreturndet 
+where xstatus='Confirmed' and xtypestk='Stocking'
+UNION ALL
+SELECT `ztime`,`bizid`,`xdate`,`ximptnum` as xtxnnum,
+`xsup`,
+`xrow`,xwh,
+xbranch,xproj,`xitemcode`,xitembatch,
+xitemdesc,
+0 as xqtypo,'' as xunitpur,xqty,0 as `xextqty`,xunit,0 as xqtyso,0 as `xratepur`,
+1 as xconversion,xstdcost, 0 as xstdprice,0 as `xdisc`,
+xdoctype,zemail,0 as xsignpo,xsign, 0 as xsignso,'' as xcolor,'' as xsize FROM vimtransferdet 
+where xstatus='Confirmed'
+UNION ALL
+SELECT `ztime`,`bizid`,`xdate`,`xtxnnum`,
+`xsup`,
+`xrow`,`xwh`,
+`xbranch`,`xproj`,`xitemcode`,xitembatch,
+`xitemdesc`,
+`xqtypo`,`xunitpur`,`xqty`,`xextqty`,`xunit`,`xqtyso`,`xratepur`,
+`xconversion`,`xstdcost`,`xstdprice`,`xdisc`,
+`xdoctype`,`zemail`,`xsignpo`,`xsign`,`xsignso`,`xcolor`,`xsize` FROM imrcvnissue
+UNION ALL
+SELECT `ztime`,`bizid`,`xdate`,ximsenum as xtxnnum,
+`xsup`,
+`xrow`,`xwh`,
+`xbranch`,`xproj`,`xitemcode`,xbarcode as xitembatch,
+xdesc as xitemdesc,
+0 as xqtypo,'' as xunitpur,`xqty`,0 as xextqty,xuom xunit,0 as xqtyso, 0 as xratepur,
+1 as xconversion,`xstdcost`,`xstdprice`,`xdisc`,
+xdocument as `xdoctype`,`zemail`,1 as xsignpo,`xsign`,1 as xsignso,`xcolor`,`xsize` FROM imsetxn
+
+
+CREATE OR REPLACE VIEW vitemcost AS 
+ SELECT tbl.bizid,
+    tbl.xitemcode,
+    tbl.totalqty,    
+    tbl.totalpurchasecost / tbl.totalqty AS avgcost
+   FROM vitemcostdt;
+   
+CREATE OR REPLACE VIEW vitemcostdt AS   
+SELECT vimtrn.bizid,
+            vimtrn.xitemcode,
+            sum(vimtrn.xqty * vimtrn.xsign) AS totalqty,
+            sum(vimtrn.xqty * vimtrn.xstdcost * vimtrn.xsign) AS totalpurchasecost
+           FROM vimtrn 
+          GROUP BY vimtrn.bizid, vimtrn.xitemcode
+          ORDER BY vimtrn.xitemcode   
+
+
+create view vpointncom
+AS
+select vtblcom.stno,vtblpoint.totalpoint, vtblcom.xcom
+from
+vtblpoint,vtblcom
+where vtblcom.stno=vtblpoint.stno;
+
+create or replace view vtblpoint
+AS
+SELECT stno,sum(centerpoint) as totalpoint FROM `mlmtree` group by stno
+
+create or replace view  vtblcom
+as
+SELECT stno,sum(xcom) as xcom FROM `mlmtotrep` group by stno
+
+CREATE OR REPLACE VIEW vreqlist
+AS
+select distinct xsup from vimstock where xqtyreq-(xqtypo+xqty)>0
+
+
+create or replace view vablsales
+AS
+SELECT xdate,bizid,zemail,ximreqnum,xrdin,xreqby as xorg,xsup,xrow,xitemcode,xitemdesc,xqty,xrate,xstdcost,xyear,xper,'Requisiton' as xtypesales FROM `vimreqdet`
+UNION ALL
+SELECT xdate,bizid,zemail,ximsenum,xcus,xcusdt as xorg,xsup,xrow,xitemcode,xdesc as xitemdesc,xqty,xstdprice as xrate,xstdcost,xyear,xper,'Corporate POS' as xtypesales FROM `vsalesdt`
+
+create or replace view vbinmatchingcom 
+AS
+select c.stno,c.xrdin,c.bin,c.distrisl,c.xcom,m.binstatus from mlmtotrep c, mlmtree m where 
+m.bin=c.bin and
+xcomtype='Matching Commission'
+
+create or replace view vbvtopmatching
+AS
+SELECT bin,distrisl, binstatus, IF(binstatus='Regular', 5000-mod(sum(xcom), 5000), 1000-mod(sum(xcom), 1000)) as required,
+IF(binstatus='Regular', floor(sum(xcom)/5000), floor(sum(xcom)/1000)) as topmatching
+FROM `vbinmatchingcom` group by bin, binstatus order by bin
+
+
+create or replace view vcustomerbal
+AS
+SELECT bizid,xaccsub, sum(xprime) as xbal FROM `gldetail` WHERE xaccsource='Customer' group by bizid,xaccsub
+
+create or replace view vsupplierbal
+AS
+SELECT bizid,xaccsub, sum(xprime) as xbal FROM `gldetail` WHERE xaccsource='Supplier' group by bizid,xaccsub
+
+create or replace view vrecnpaycb 
+as 
+select gldetailview.bizid,gldetailview.xdate,gldetailview.xvoucher,gldetailview.xacc,
+gldetailview.xaccdesc,gldetailview.xaccsub, gldetailview.xacctype,gldetailview.xaccusage,
+gldetailview.xaccsource,gldetailview.xcur,gldetailview.xbase,gldetailview.xprime,'Cash & Bank' as xtype,
+xflag,xdoctype from gldetailview where gldetailview.xaccusage in ('Bank','Cash')
+
+CREATE OR REPLACE VIEW vpoavgcost
+AS
+SELECT bizid,xitemcode,FORMAT(AVG(xratepur),6) as xavgcost FROM `podet` group by bizid,xitemcode
+
+
+create or replace view vsalesdt
+AS 
+select m.bizid,c.sodetsl as sosl,m.ztime,m.zemail,m.xsonum,m.xquotnum,m.xdate,m.xcus,m.xgrossdisc,m.xnotes,m.xcusdoc,
+m.xstatus,m.xrecflag,year(m.xdate) as xyear,month(m.xdate) as xper,m.xvoucher,m.xmanager,m.xsalesaccdr,m.xsalesacccr,m.ximaccdr,m.ximacccr,
+m.xvataccdr,m.xvatacccr,m.xdiscaccdr,m.xdiscacccr,m.xwh,m.xbranch,m.xproj,c.xrow,c.xrowquot,c.xitemcode,c.xitembatch,
+c.xqty,c.xcost,c.xrate,(c.xqty*c.xcost) as xcosttotal,(c.xqty*c.xexch*c.xrate) as xsubtotal,c.xtaxrate,((c.xqty*c.xexch*c.xrate)*c.xtaxrate)/100 as xtaxtotal,
+c.xunitsale,c.xtypestk,c.xexch,c.xcur,c.xdisc,(c.xqty*c.xexch*c.xdisc) as xdisctotal,c.xtaxcode,c.xtaxscope from somst m, sodet c where
+m.bizid=c.bizid and m.xsonum=c.xsonum;
+
+create or replace view vsalesdodt
+AS 
+select m.bizid,c.sodetsl as sosl,m.ztime,m.zemail,m.xsonum,m.xquotnum,m.xdate,m.xcus,m.xgrossdisc,m.xnotes,m.xcusdoc,
+m.xstatus,m.xrecflag,m.xyear,m.xper,m.xvoucher,m.xmanager,m.xsalesaccdr,m.xsalesacccr,m.ximaccdr,m.ximacccr,
+m.xvataccdr,m.xvatacccr,m.xdiscaccdr,m.xdiscacccr,c.xwh,m.xbranch,m.xproj,c.xrow,c.xrowquot,c.xitemcode,c.xitembatch,
+c.xqty,
+COALESCE((select sum(xqty) from imreqdeldet where c.bizid=imreqdeldet.bizid and c.xsonum=imreqdeldet.xsonum and c.sodetsl=imreqdeldet.xrowtrn and c.xitemcode=imreqdeldet.xitemcode),0) as xdoqty,
+c.xcost,c.xrate,(c.xqty*c.xcost) as xcosttotal,(c.xqty*c.xexch*c.xrate) as xsubtotal,c.xtaxrate,((c.xqty*c.xexch*c.xrate)*c.xtaxrate)/100 as xtaxtotal,
+c.xunitsale,c.xtypestk,c.xexch,c.xcur,c.xdisc,(c.xqty*c.xexch*c.xdisc) as xdisctotal,c.xtaxcode,c.xtaxscope from somst m, sodet c where
+m.bizid=c.bizid and m.xsonum=c.xsonum;
+
+
+CREATE OR REPLACE VIEW vimreturndet
+AS	
+SELECT m.bizid,m.ztime,m.xreqdelnum,m.xdoreturnnum,m.xcus,c.xreturndetsl,
+(select xsup from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xsup,
+c.xwh,c.xbranch,c.xproj,m.xstatus,c.xdate,c.xrow,c.xitemcode,
+(select xdesc from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xitemdesc,
+c.xitembatch,c.xqty,c.xrate,c.xratepur,c.xunit,c.xtypestk,c.xtaxrate,c.xdisc,c.xstdcost,c.zemail FROM `imdoreturn` m, `imdoreturndet` c WHERE m.bizid=c.bizid and m.xdoreturnnum=c.xdoreturnnum
+
+
+CREATE OR REPLACE VIEW vdoreturndt
+AS	
+SELECT m.bizid,m.ztime,m.xreqdelnum,m.xsonum,m.xcus,
+(select xsup from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xsup,
+c.xwh,c.xbranch,c.xproj,m.xstatus,c.xdate,c.xreqdeldetsl,c.xrow,c.xitemcode,
+(select xdesc from seitem where c.bizid=seitem.bizid and c.xitemcode=seitem.xitemcode) as xitemdesc,
+c.xitembatch,c.xqty,
+COALESCE((select sum(xqty) from imdoreturndet where c.bizid=imdoreturndet.bizid and c.xreqdelnum=imdoreturndet.xreqdelnum and c.xreqdeldetsl=imdoreturndet.xrowtrn and c.xitemcode=imdoreturndet.xitemcode),0) as xreturnqty,
+c.xrate,c.xratepur,c.xunit,c.xtypestk,c.xdisc,c.zemail FROM `imreqdelmst` m, `imreqdeldet` c WHERE m.bizid=c.bizid and m.xreqdelnum=c.xreqdelnum
+
+
+
+
+//from sales gldetailview
+ztime,bizid,xvoucher,xrow,xdate,xnarration,xref,xchequeno,xyear,xper,zemail,xemail,xbranch,xdoctype,xdocnum,xapprovedby,
+xmanager,xacc,xaccdesc,xaccstype,xaccusage,xaccsource,xaccsub,xaccsubdesc,xproj,xsec,xdiv,xcur,xbase,xprime,xcheque,xchequedate,
+xflag,xinvnum,xsalesparson,xrecflag,xacclevel1,xacclevel2,xacclevel3
+
+CREATE OR REPLACE VIEW vglheader
+AS
+SELECT *,
+if((select sum(xprime) from gldetail where gldetail.xvoucher=glheader.xvoucher and gldetail.bizid=glheader.bizid)<>0,'Un Balanced','Balanced') as xstatus 
+FROM `glheader` WHERE 1
+
+CREATE OR REPLACE VIEW vglsales
+AS
+select bizid,xvoucher,xsonum,ztime,xcus,xdate,xyear,xper,xmanager,xproj,xwh,xbranch,xsalesaccdr,xsalesacccr,ximaccdr,ximacccr,
+xvataccdr,xvatacccr,xdiscaccdr,xdiscacccr,sum(xcosttotal) as xcosttotal,sum(xsubtotal) as xsubtotal,sum(xtaxtotal) as xtaxtotal,
+sum(xdisctotal) as xdisctotal from  vsalesdt where xstatus='Confirmed' and xrecflag='Live' group by bizid,xvoucher,xsonum,ztime,xcus,
+xdate,xyear,xper,xmanager,xproj,xwh,xbranch,xsalesaccdr,xsalesacccr,ximaccdr,ximacccr,
+xvataccdr,xvatacccr,xdiscaccdr,xdiscacccr
+
+create or replace view vglsalesdetail
+AS
+select bizid,ztime,xvoucher,xsonum as xdocnum,xsonum as xinvnum,'Live' as xrecflag,xmanager as xsalesparson,xproj,'Sales Order' as xdoctype,xcus as xaccsub,xdate,xyear,xper,1 as xrow,xsalesaccdr as xacc,xsubtotal as xprime,'Debit' as xflag,'Balanced' as xstatus,concat('Created By System Against Sales Order ',xsonum) as xnarration from vglsales where xsubtotal>0 and xsalesaccdr is not null
+UNION ALL
+select bizid,ztime,xvoucher,xsonum as xdocnum,xsonum as xinvnum,'Live' as xrecflag,xmanager as xsalesparson,xproj,'Sales Order' as xdoctype,'' as xaccsub,xdate,xyear,xper,2 as xrow,xsalesacccr as xacc,xsubtotal*-1 as xprime,'Credit' as xflag,'Balanced' as xstatus,concat('Created By System Against Sales Order ',xsonum) as xnarration from vglsales where xsubtotal>0 and xsalesacccr is not null
+UNION ALL
+select bizid,ztime,xvoucher,xsonum as xdocnum,xsonum as xinvnum,'Live' as xrecflag,xmanager as xsalesparson,xproj,'Sales Order' as xdoctype,'' as xaccsub,xdate,xyear,xper,3 as xrow,ximaccdr as xacc,xcosttotal as xprime,'Debit' as xflag,'Balanced' as xstatus,concat('Created By System Against Sales Order ',xsonum) as xnarration from vglsales where xcosttotal>0 and ximaccdr is not null
+UNION ALL
+select bizid,ztime,xvoucher,xsonum as xdocnum,xsonum as xinvnum,'Live' as xrecflag,xmanager as xsalesparson,xproj,'Sales Order' as xdoctype,xwh as xaccsub,xdate,xyear,xper,4 as xrow,ximacccr as xacc,xcosttotal*-1 as xprime,'Credit' as xflag,'Balanced' as xstatus,concat('Created By System Against Sales Order ',xsonum) as xnarration from vglsales where xcosttotal>0 and ximacccr is not null
+UNION ALL
+select bizid,ztime,xvoucher,xsonum as xdocnum,xsonum as xinvnum,'Live' as xrecflag,xmanager as xsalesparson,xproj,'Sales Order' as xdoctype,xcus as xaccsub,xdate,xyear,xper,5 as xrow,xvataccdr as xacc,xtaxtotal as xprime,'Debit' as xflag,'Balanced' as xstatus,concat('Created By System Against Sales Order ',xsonum) as xnarration from vglsales where xtaxtotal>0 and xvataccdr is not null
+UNION ALL
+select bizid,ztime,xvoucher,xsonum as xdocnum,xsonum as xinvnum,'Live' as xrecflag,xmanager as xsalesparson,xproj,'Sales Order' as xdoctype,'' as xaccsub,xdate,xyear,xper,6 as xrow,xvatacccr as xacc,xtaxtotal*-1 as xprime,'Credit' as xflag,'Balanced' as xstatus,concat('Created By System Against Sales Order ',xsonum) as xnarration from vglsales where xtaxtotal>0 and xvatacccr is not null
+UNION ALL
+select bizid,ztime,xvoucher,xsonum as xdocnum,xsonum as xinvnum,'Live' as xrecflag,xmanager as xsalesparson,xproj,'Sales Order' as xdoctype,xcus as xaccsub,xdate,xyear,xper,7 as xrow,xdiscaccdr as xacc,xdisctotal as xprime,'Debit' as xflag,'Balanced' as xstatus,concat('Created By System Against Sales Order ',xsonum) as xnarration from vglsales where xdisctotal>0 and xdiscaccdr is not null
+UNION ALL
+select bizid,ztime,xvoucher,xsonum as xdocnum,xsonum as xinvnum,'Live' as xrecflag,xmanager as xsalesparson,xproj,'Sales Order' as xdoctype,'' as xaccsub,xdate,xyear,xper,8 as xrow,xdiscacccr as xacc,xdisctotal*-1 as xprime,'Credit' as xflag,'Balanced' as xstatus,concat('Created By System Against Sales Order ',xsonum) as xnarration from vglsales where xdisctotal>0 and xdiscacccr is not null
+
+create or replace view vglsalesinterface
+AS
+ select h.ztime,h.bizid,h.xvoucher,h.xrow,h.xdate,h.xnarration,'' as xref,'' as xchequeno,h.xyear,h.xper,'' as zemail,'' as xemail,h.xproj as xbranch,h.xdoctype,h.xstatus,
+h.xdocnum,'' as xapprovedby, '' as xmanager, h.xacc,d.xdesc as xaccdesc,d.xacctype,d.xaccusage,d.xaccsource,h.xaccsub,
+h.xproj,'' as xsec,'' as xdiv,'BDT' as xcur,0 as xbase,h.xprime,'' as xcheque,'' as xchequedate,h.xflag,
+h.xinvnum,h.xsalesparson, 'Live' as xrecflag, d.xacclevel1,d.xacclevel2,d.xacclevel3 from vglsalesdetail h, glchart d 
+where h.bizid=d.bizid and h.xacc=d.xacc order by xvoucher
+
+create or replace view vgldetailinterface
+As
+select h.ztime,h.bizid,h.xvoucher,d.xrow,h.xdate,h.xnarration,h.xref,h.xchequeno,h.xyear,h.xper,h.zemail,h.xemail,h.xbranch,h.xdoctype,h.xstatus,
+h.xdocnum,h.xapprovedby, h.xmanager, d.xacc, (select xdesc from glchart g where d.bizid = g.bizid and d.xacc = g.xacc) as xaccdesc,
+d.xacctype,d.xaccusage,d.xaccsource,d.xaccsub,
+d.xproj,d.xsec,d.xdiv,xcur,d.xbase,d.xbase*d.xexch as xprime,d.xcheque,d.xchequedate,d.xflag,
+d.xinvnum,d.xsalesparson,h.xrecflag,
+(select xacclevel1 from glchart g where d.bizid = g.bizid and d.xacc = g.xacc) as xacclevel1,
+(select xacclevel2 from glchart g where d.bizid = g.bizid and d.xacc = g.xacc) as xacclevel2,
+(select xacclevel3 from glchart g where d.bizid = g.bizid and d.xacc = g.xacc) as xacclevel3
+ from vglheader h, gldetail d where h.bizid = d.bizid and h.xvoucher = d.xvoucher
+
+
+//CRM VIEW//
+create or replace view vcrmoppertunity
+AS
+select ztime,bizid,xoppersl,xlead,
+(select xorg from crmlead where crmoppertunity.xlead=crmlead.xlead and crmoppertunity.bizid=crmlead.bizid) as xorg,
+(select xmobile from crmlead where crmoppertunity.xlead=crmlead.xlead and crmoppertunity.bizid=crmlead.bizid) as xmobile,
+(select xadd from crmlead where crmoppertunity.xlead=crmlead.xlead and crmoppertunity.bizid=crmlead.bizid) as xadd,
+xcldate,xexprevenew,xsalesman,xremarks,xstatus from crmoppertunity
+
+create or replace view vpointpool
+AS
+SELECT bizid,xecomdetsl as xtxn,xdate,xcus,xpoint*xqty as xpoint, 1 as xsign, 'Point purchased' as xdoctype FROM `ecomsalesdet` WHERE xpaymethod<>'COD' 
+UNION ALL SELECT bizid,xsl as xtxn,xdate,xrdin as xcus,xpoint, xsign, xdoctype FROM `distpointused`
+UNION ALL SELECT bizid,xsl as xtxn,xdate,xrdin as xcus,((xamount*xcompact)/100)/8 as xpoint, 1 as xsign,'Costcut' as xdoctype
+from opostxn where xtxntype='wallet'  
+
+create or replace view vcommssiondt 
+AS 
+SELECT xsl,ztime,xdate,stno,pay_login_name,com_login_name as xrdin,FORMAT((com-com*(xtaxpct/100)),2) as xamount,xdoctype,1 as xsign FROM `mlmretailaudit` 
+
+
+create or replace view vpwallet
+as
+SELECT ztime,xecomsl as xtxn,bizid,stno,xdate,xcus,xcus as tofrom,(select COALESCE(sum(xqty*xrate),0) from ecomsalesdet where ecomsalesdet.xecomsl=ecomsalesmst.xecomsl) as xamount, 'Online Buy' as xdoctype, -1 xsign FROM `ecomsalesmst`
+UNION ALL
+select ztime,xsl as xtxn, bizid, stno, xdate,xrdin as xcus,zemail as tofrom,xamount, 'Customer Advance', xsign from `gladvance`
+UNION ALL
+select ztime,xsl as xtxn, bizid, stno, xdate,xrdin as xcus,zemail as tofrom,xamount, 'Costcut', -1 as xsign from `opostxn`
+
+create or replace view vusedpoint
+as
+SELECT ztime,xsl,xrdin as login_name,stno,xdate,xpoint,xdoctype,1 as xsign from `distpointused`
+UNION ALL
+select ztime,xsl,login_name, stno, xdate,xpoint, xdoctype, xsign from `diststatusupdate`
+
+
+
+CREATE OR REPLACE VIEW vcwallet
+AS
+SELECT xpaynreqnum as xtxn,stno,xdate,xrdin,xamount,xdoctype, -1 as xsign FROM `distpaynreq` where xdoctype in ('Witdrawal Request','Opening Balance')
+UNION ALL
+select xcomsl as xtxn,stno,xdate,xrdin,xcom as xamount,xcomtype as xdoctype, 1 as xsign from mlmtotrep
+
+CREATE OR REPLACE VIEW `vecomsalesdt` AS 
+select `m`.`bizid` AS `bizid`,`c`.`xecomdetsl` AS `sosl`,`m`.`ztime` AS `ztime`,`m`.`zemail` AS `zemail`,`m`.`xecomsl` AS `xecomsl`,`m`.`xdate` AS `xdate`,`m`.`xcus` AS `xcus`,`m`.`xgrossdisc` AS `xgrossdisc`,`m`.`xnotes` AS `xnotes`,`m`.`xstatus` AS `xstatus`,`m`.`xrecflag` AS `xrecflag`,year(`m`.`xdate`) AS `xyear`,month(`m`.`xdate`) AS `xper`,`m`.`xmanager` AS `xmanager`,`m`.`xwh` AS `xwh`,`m`.`xbranch` AS `xbranch`,`m`.`xproj` AS `xproj`,`c`.`xrow` AS `xrow`,`c`.`xitemcode` AS `xitemcode`,`c`.`xitembatch` AS `xitembatch`,`c`.`xqty` AS `xqty`,`c`.`xcost` AS `xcost`,`c`.`xrate` AS `xrate`,(`c`.`xqty` * `c`.`xcost`) AS `xcosttotal`,((`c`.`xqty` * `c`.`xexch`) * `c`.`xrate`) AS `xsubtotal`,`c`.`xtaxrate` AS `xtaxrate`,((((`c`.`xqty` * `c`.`xexch`) * `c`.`xrate`) * `c`.`xtaxrate`) / 100) AS `xtaxtotal`,`c`.`xunitsale` AS `xunitsale`,`c`.`xtypestk` AS `xtypestk`,`c`.`xexch` AS `xexch`,`c`.`xcur` AS `xcur`,`c`.`xdisc` AS `xdisc`,((`c`.`xqty` * `c`.`xexch`) * `c`.`xdisc`) AS `xdisctotal`,`c`.`xtaxcode` AS `xtaxcode`,`c`.`xtaxscope` AS `xtaxscope` from (`annexdb`.`ecomsalesmst` `m` join `annexdb`.`ecomsalesdet` `c`) where ((`m`.`bizid` = `c`.`bizid`) and (`m`.`xecomsl` = `c`.`xecomsl`))
+
+CREATE OR REPLACE VIEW `vsalesdelivery` AS 
+select `m`.`bizid` AS `bizid`,`c`.`xecomdetsl` AS `sosl`,`m`.`ztime` AS `ztime`,`m`.`zemail` AS `zemail`,
+`m`.`xecomsl` AS `xecomsl`,`m`.`xdate` AS `xdate`,`m`.`xcus` AS `xcus`,`m`.`xgrossdisc` AS `xgrossdisc`,
+`m`.`xnotes` AS `xnotes`,`m`.`xstatus` AS `xstatus`,`m`.`xrecflag` AS `xrecflag`,`m`.`xyear` AS `xyear`,
+`m`.`xper` AS `xper`,`m`.`xmanager` AS `xmanager`,`m`.`xwh` AS `xwh`,`m`.`xbranch` AS `xbranch`,`m`.`xproj` AS `xproj`,
+`c`.`xrow` AS `xrow`,`c`.`xitemcode` AS `xitemcode`,`c`.`xitembatch` AS `xitembatch`,`c`.`xqty` AS `xqty`,
+coalesce((select sum(`eannexdb`.`imreqdeldet`.`xqty`) from `eannexdb`.`imreqdeldet` 
+where ((`c`.`bizid` = `eannexdb`.`imreqdeldet`.`bizid`) and (`c`.`xecomsl` = `eannexdb`.`imreqdeldet`.`xsonum`) 
+and (`c`.`xrow` = `eannexdb`.`imreqdeldet`.`xrowtrn`) 
+and (`c`.`xitemcode` = `eannexdb`.`imreqdeldet`.`xitemcode`))),0) AS `xdoqty`,`c`.`xcost` AS `xcost`,`c`.`xrate` AS `xrate`,
+(`c`.`xqty` * `c`.`xcost`) AS `xcosttotal`,((`c`.`xqty` * `c`.`xexch`) * `c`.`xrate`) AS `xsubtotal`,
+`c`.`xtaxrate` AS `xtaxrate`,((((`c`.`xqty` * `c`.`xexch`) * `c`.`xrate`) * `c`.`xtaxrate`) / 100) AS `xtaxtotal`,
+`c`.`xunitsale` AS `xunitsale`,`c`.`xtypestk` AS `xtypestk`,`c`.`xexch` AS `xexch`,`c`.`xcur` AS `xcur`,
+`c`.`xdisc` AS `xdisc`,((`c`.`xqty` * `c`.`xexch`) * `c`.`xdisc`) AS `xdisctotal`,`c`.`xtaxcode` AS `xtaxcode`,
+`c`.`xtaxscope` AS `xtaxscope` from (`eannexdb`.`ecomsalesmst` `m` join `eannexdb`.`ecomsalesdet` `c`) 
+where ((`m`.`bizid` = `c`.`bizid`) and (`m`.`xecomsl` = `c`.`xecomsl`))

@@ -1,0 +1,80 @@
+.upload-btn-box {
+  .jFiler-input {
+    width: 170px;
+    border: none;
+    background-color: transparent;
+    height: auto;
+    font-size: $default-font-3;
+    color: $theme-color-4;
+    font-weight: $font-weight-medium;
+    .jFiler-input-caption {
+      display: none;
+    }
+    .jFiler-input-button {
+      float: none;
+      padding: 10px 0;
+      position: relative;
+      color: $theme-color-5;
+      &:after {
+        position: absolute;
+        content: 'Upload a Course';
+        top: 0;
+        left: 0;
+        padding-top: 10px;
+        color: $theme-color-4;
+        width: 100%;
+        height: 100%;
+        padding-left: 30px;
+      }
+      &:before {
+        position: absolute;
+        content: "\f0ee";
+        top: 10px;
+        left: 20px;
+        font-family: "FontAwesome";
+        color: $theme-color-4;
+        font-size: $display-14;
+      }
+    }
+  }
+}
+/*======= course-photo-btn ========*/
+.course-photo-btn {
+  .jFiler-input {
+    .jFiler-input-button {
+      &:after {
+        position: absolute;
+        content: 'Upload a Photo';
+      }
+      &:before {
+        content: "\f03e";
+      }
+    }
+  }
+}
+
+
+
+
+/*======= msg-action-wrap ========*/
+.msg-action-wrap {
+  .jFiler-input {
+    width: 50px;
+    height: 50px;
+    margin: 0;
+    .jFiler-input-button {
+      padding: 0;
+      @include border-radius(50%);
+      &:after {
+        display: none;
+      }
+      &:before {
+        content: "\f0c6";
+        font-size: $display-10;
+        top: 50%;
+        left: 50%;
+        @include transform(translate(-50%, -50%))
+      }
+    }
+  }
+}

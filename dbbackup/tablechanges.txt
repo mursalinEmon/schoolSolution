@@ -1,0 +1,4 @@
+
+userbase table->district_id=District, user_branch_code=thana
+
+

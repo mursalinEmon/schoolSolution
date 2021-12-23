@@ -1,0 +1,52 @@
+.chart-item {
+  background-color: $white;
+  @include border-radius(8px);
+  margin-bottom: 30px;
+  position: relative;
+  padding: 20px;
+  @include box-shadow(0 0 8px 0px rgba(0, 0, 0, 0.07));
+}
+
+.chart-legend {
+  li {
+    font-size: $default-font-2;
+    margin-bottom: 3px;
+    display: inline-block;
+    padding-right: 15px;
+    &:last-child {
+      padding-right: 0;
+    }
+  }
+}
+
+.legend__bg {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  background-color: $theme-color-4;
+  @include border-radius(50%);
+  margin-right: 7px;
+}
+.legend__bg-1 {
+  background-color: $alter-color;
+}
+.legend__bg-2 {
+  background-color: $alter-color-2;
+}
+.legend__bg-3 {
+  background-color: $alter-color-3;
+}
+
+.world-map {
+  height: 170px;
+}
+#visit-by-locate {
+  height: 100%;
+}
+.chart-short-option {
+  width: 155px;
+  .sort-ordering-select {
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+}

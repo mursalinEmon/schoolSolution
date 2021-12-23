@@ -1,0 +1,159 @@
+/*===== report-modal =====*/
+.modal-form {
+  .modal-dialog.modal-lg {
+    @media #{$large_mobile_three} {
+      width: auto;
+    }
+  }
+  .modal-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 30px;
+  }
+  .modal-top {
+    border-bottom: 1px solid $color;
+    margin-bottom: 25px;
+    padding: 25px 30px 23px 30px;
+    display: -webkit-flex;
+    display: -ms-flex;
+    display: flex;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+    position: relative;
+    .close-arrow {
+      opacity: 1;
+      top: 20px;
+      position: absolute;
+      right: 20px;
+      span {
+        font-size: $display-12;
+        color: $theme-color;
+        @include transition(0.3s);
+        &:hover {
+          color: $theme-color-2;
+          @include transform(rotate(90deg));
+        }
+      }
+    }
+    .modal-sub {
+      font-weight: $font-weight-medium;
+      line-height: 26px;
+    }
+  }
+  .alert-content {
+    .warning-icon {
+      color: $alter-color-2;
+      font-size: $display-4;
+      display: inline-block;
+    }
+    .modal-title {
+      line-height: 25px;
+    }
+  }
+  .modal-body {
+    padding: 20px 30px 30px 30px;
+  }
+  .modal-text {
+    p {
+      margin-bottom: 15px;
+    }
+  }
+  .contact-form-action {
+    padding: 0 30px 30px 30px;
+  }
+
+  .btn-box {
+    .theme-btn {
+      line-height: 40px;
+    }
+  }
+  .btn-box.text-right {
+    @media #{$small_mobile_two} {
+      text-align: left;
+    }
+  }
+}
+/*========== copy-to-clipboard-modal ============*/
+.copy-to-clipboard-modal {
+  .contact-form-action{
+    padding: 0;
+  }
+}
+.success-message {
+  background-color: $alter-color-4;
+  color: $white;
+  @include border-radius(4px);
+  padding: 3px 6px;
+  position: absolute;
+  top: -10px;
+  left: 45%;
+  @include transform(translateX(-50%));
+  @include transition(0.4s);
+  opacity: 0;
+  visibility: hidden;
+  &.active {
+    top: -40px;
+    opacity: 1;
+    visibility: visible;
+  }
+  &:after {
+    position: absolute;
+    content: "";
+    bottom: -4px;
+    left: 50%;
+    @include transform(translateX(-50%) rotate(45deg));
+    background-color: $alter-color-4;
+    width: 8px;
+    height: 8px;
+  }
+}
+
+.copy-to-clipboard {
+  position: relative;
+  .contact-form-action {
+    .form-control {
+      padding: 10px 20px;
+    }
+  }
+  .copy-tooltip {
+    .theme-btn {
+      margin-left: 4px;
+      text-transform: inherit;
+    }
+  }
+}
+
+.copy-tooltip {
+  position: relative;
+  display: inline-block;
+  .tooltip-text {
+    width: 140px;
+    background-color: $theme-color;
+    color: $white;
+    text-align: center;
+    @include border-radius(4px);
+    line-height: 30px;
+    position: absolute;
+    z-index: 1;
+    bottom: 120%;
+    left: 50%;
+    margin-left: -70px;
+    display: none;
+    &:after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: $theme-color transparent transparent transparent;
+    }
+  }
+  &:hover {
+    .tooltip-text {
+      display: block;
+    }
+  }
+}

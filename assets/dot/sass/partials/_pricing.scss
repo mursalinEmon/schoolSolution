@@ -1,0 +1,97 @@
+/*-===============================
+    PACKAGE AREA
+===============================-*/
+.package-item {
+  background-color: $white;
+  @include box-shadow(0 0 40px rgba(14, 16, 48, 0.05));
+  @include border-radius(4px);
+  padding: 42px 40px 45px 40px;
+  margin-bottom: 30px;
+  position: relative;
+  z-index: 1;
+  .list-items {
+    li {
+      padding-left: 0;
+      &:after {
+        display: none;
+      }
+    }
+  }
+  .btn-box {
+    .theme-btn {
+      display: block;
+      width: 100%;
+      text-align: center;
+      background-color: $white;
+      border-width: 1px;
+      color: $theme-color-2;
+      &:hover {
+        background-color: $theme-color-2;
+        color: $white;
+      }
+    }
+    .package__meta {
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: $font-weight-medium;
+      margin-top: 23px;
+      font-size: $default-font-2;
+    }
+  }
+}
+
+.package-title {
+  border-bottom: 1px solid rgba(127, 136, 151, 0.1);
+  padding-bottom: 33px;
+  margin-bottom: 35px;
+  .package__price {
+    font-size: $display-5;
+    font-weight: $font-weight-semi-bold;
+    margin-bottom: 10px;
+  }
+  .package__title {
+    font-size: $display-10;
+    font-weight: $font-weight-semi-bold;
+    margin-bottom: 6px;
+  }
+}
+
+.package-tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  @include border-radius(4px 4px 0 0);
+  .package__tooltip {
+    background-color: $theme-color-2;
+    color: $white;
+    font-weight: $font-weight-semi-bold;
+    text-align: center;
+    display: block;
+    @include border-radius(4px 4px 0 0);
+    padding: 15px 0;
+    font-size: $display-13;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.package-item-active {
+  padding-top: 95px;
+  margin-top: -24px;
+  @media #{$tab_device} {
+    margin-top: 0;
+  }
+  @media #{$large_mobile} {
+    margin-top: 0;
+  }
+  @media #{$small_mobile} {
+    margin-top: 0;
+  }
+  .btn-box {
+    .theme-btn {
+      background-color: $theme-color-2;
+      color: $white;
+    }
+  }
+}

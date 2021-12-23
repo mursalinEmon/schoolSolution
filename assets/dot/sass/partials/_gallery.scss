@@ -1,0 +1,119 @@
+/*====================================================
+    GALLERY
+ ====================================================*/
+.portfolio-filter {
+  text-align: center;
+  li {
+    display: inline-block;
+    padding: 8px 25px;
+    cursor: pointer;
+    color: $theme-color;
+    @include border-radius(4px);
+    position: relative;
+    z-index: 1;
+    @include transition(0.4s);
+    font-size: $default-font;
+    font-weight: $font-weight-medium;
+    &:hover {
+      color: $theme-color-2;
+      background-color: rgba(81, 190, 120, 0.1);
+    }
+    &.active {
+      color: $white;
+      background-color: $theme-color-2;
+      @include box-shadow(0 10px 30px rgba(81, 190, 120, 0.2));
+    }
+  }
+}
+
+.single-portfolio-item {
+  position: relative;
+  z-index: 1;
+  @include border-radius(4px);
+  margin-bottom: 30px;
+  img {
+    width: 100%;
+    height: 100%;
+    @include transition(0.6s);
+  }
+  .portfolio-hover {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    @include border-radius(4px);
+    .portfolio-link {
+      display: block;
+      .icon-element {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        @include transform(translate(-50%, -50%) scale(1.4));
+        width: 60px;
+        height: 60px;
+        line-height: 60px;
+        background-color: $theme-color;
+        @include border-radius(50%);
+        z-index: 1;
+        color: $white;
+        font-size: $display-9;
+        @include transition(0.6s);
+        opacity: 0;
+        visibility: hidden;
+      }
+      &:after {
+        position: absolute;
+        content: "";
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: $theme-color;
+        opacity: 0;
+        visibility: hidden;
+        @include border-radius(4px);
+        @include transition(0.6s);
+      }
+    }
+  }
+  &:hover {
+    img {
+      @include transform(scale(1.1));
+    }
+    .portfolio-hover {
+      .portfolio-link {
+        opacity: 1;
+        visibility: visible;
+        .icon-element,
+        &:after {
+          visibility: visible;
+        }
+        &:after {
+          opacity: 0.5;
+        }
+        .icon-element {
+          opacity: 1;
+          @include transform(translate(-50%, -50%) scale(1));
+        }
+      }
+    }
+  }
+}
+
+.single-portfolio-item.col-lg-4 {
+  @media #{$tab_device} {
+    -ms-flex: 0 0 50%;
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+  @media #{$large_mobile} {
+    -ms-flex: 0 0 50%;
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+  @media #{$small_mobile} {
+    -ms-flex: 0 0 100%;
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

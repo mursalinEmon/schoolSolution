@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<viewconf>
+    <viewtemplate name="templatedba">
+        <header>dbaheader</header>
+        <footer>dbafooter</footer>
+    </viewtemplate>
+    <viewtemplate name="templatedir">
+        <header>dirheader</header>
+        <footer>dirfooter</footer>
+    </viewtemplate>
+    <viewtemplate name="templatepagelist">
+        <header>webheader</header>
+        <footer>webfooter</footer>
+    </viewtemplate>
+    <viewtemplate name="webpagetemplate">
+        <header>webpageheader</header>
+        <footer>webpagefooter</footer>
+    </viewtemplate>
+    <viewtemplate name="teachertemplate">
+        <header>teachermenuheader</header>
+        <footer>teachermenufooter</footer>
+    </viewtemplate>
+    <viewtemplate name="studenttemplate">
+        <header>studentmenuheader</header>
+        <footer>webpagefooter</footer>
+    </viewtemplate>
+    <viewtemplate name="templateadmin">
+        <header>adminheader</header>
+        <footer>adminfooter</footer>
+    </viewtemplate>
+    <viewtemplate name="templatelogin">
+        <header>adminloginheader</header>
+        <footer>adminloginfooter</footer>
+    </viewtemplate>
+    <viewtemplate name="rawtemplate">
+        <header>rawheader</header>
+        <footer>rawfooter</footer>
+    </viewtemplate>
+    <viewtemplate name="notemplate">
+        <header>noheader</header>
+        <footer>nofooter</footer>
+    </viewtemplate>
+    <viewtemplate name="menutemplate">
+        <header>menuheader</header>
+        <footer>menufooter</footer>
+    </viewtemplate>
+    <viewtemplate name="dashboard">
+        <header>dashboardheader</header>
+        <footer>dashboardfooter</footer>
+    </viewtemplate>
+    <viewtemplate name="facdashboard">
+        <header>facdashboardheader</header>
+        <footer>facdashboardfooter</footer>
+    </viewtemplate>
+    <viewtemplate name="webtemplate">
+        <header>webpageheader</header>
+        <footer>webpagefooter</footer>
+    </viewtemplate>
+    <viewtemplate name="studentlogin">
+        <header>registerheader</header>
+        <footer>registerfooter</footer>
+    </viewtemplate>
+</viewconf>

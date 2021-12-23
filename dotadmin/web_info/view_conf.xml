@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<viewconf>
+    <viewtemplate name="templatedba">
+        <header>dbaheader</header>
+        <footer>dbafooter</footer>
+    </viewtemplate>
+    <viewtemplate name="templatedir">
+        <header>dirheader</header>
+        <footer>dirfooter</footer>
+    </viewtemplate>
+    <viewtemplate name="templatepagelist">
+        <header>webheader</header>
+        <footer>webfooter</footer>
+    </viewtemplate>
+    <viewtemplate name="webpagetemplate">
+        <header>webpageheader</header>
+        <footer>webpagefooter</footer>
+    </viewtemplate>
+    <viewtemplate name="templateadmin">
+        <header>adminheader</header>
+        <footer>adminfooter</footer>
+    </viewtemplate>
+    <viewtemplate name="templatelogin">
+        <header>adminloginheader</header>
+        <footer>adminloginfooter</footer>
+    </viewtemplate>
+    <viewtemplate name="rawtemplate">
+        <header>rawheader</header>
+        <footer>rawfooter</footer>
+    </viewtemplate>
+    <viewtemplate name="menutemplate">
+        <header>menuheader</header>
+        <footer>menufooter</footer>
+    </viewtemplate>
+    <viewtemplate name="webtemplate">
+        <header>webindexheader</header>
+        <footer>webpagefooter</footer>
+    </viewtemplate>
+</viewconf>

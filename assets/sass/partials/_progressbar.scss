@@ -1,0 +1,148 @@
+/*=================================
+  Skillbar
+ =================================*/
+.skill {
+  margin-bottom: 20px;
+  .widget-title {
+    font-size: $display-14;
+  }
+  span {
+    color: $theme-color;
+    &:last-of-type {
+      float: right;
+      font-size: $default-font;
+      color: $theme-color-4;
+      font-weight: $font-weight-semi-bold;
+    }
+  }
+}
+
+.progress_bg {
+  background-color: rgba(127, 136, 151, 0.1);
+  @include border-radius(30px);
+  margin-top: 10px;
+  .progress_bar {
+    height: 10px;
+    background-color:  $theme-color-2;
+    @include border-radius(30px);
+    position: relative;
+    &:after {
+      position: absolute;
+      content: '';
+      top: -4px;
+      right: -1px;
+      width: 18px;
+      height: 18px;
+      background-color: $theme-color-2;
+      @include border-radius(50%);
+      @include box-shadow(0 0 1px rgba(0, 0, 0, 0.2));
+    }
+  }
+}
+
+/*======== skillbar ========*/
+.progress-item {
+  display: -webkit-flex;
+  display: -ms-flex;
+  display: flex;
+  -ms-flex-align: center;
+  align-items: center;
+  margin-bottom: 5px;
+  position: relative;
+  @media #{$laptop_m_four} {
+    display: block;
+  }
+}
+.skillbar-box {
+  width: 50%;
+  @media #{$laptop_m_four} {
+    width: 100%;
+  }
+}
+.skillbar {
+  position:relative;
+  display:block;
+  width:100%;
+  background-color: $color;
+  height: 5px;
+  @include border-radius(30px);
+  @include transition(0.4s linear);
+  -webkit-transition-property:width, background-color;
+  -moz-transition-property:width, background-color;
+  -ms-transition-property:width, background-color;
+  -o-transition-property:width, background-color;
+  transition-property:width, background-color;
+}
+
+.skillbar-title {
+  font-size: $default-font-2;
+  width: 30%;
+  @media #{$laptop_m_four} {
+    width: 100%;
+  }
+}
+
+.skillbar-bar {
+  height:5px;
+  width:0;
+  background-color: $theme-color-4;
+  @include border-radius(30px);
+}
+.skillbar-bar-bg-1 {
+  background-color: $theme-color-2;
+}
+.skillbar-bar-bg-2 {
+  background-color: $alter-color;
+}
+.skillbar-bar-bg-3 {
+  background-color: $alter-color-2;
+}
+.skillbar-bar-bg-4 {
+  background-color: $theme-color-3;
+}
+.skillbar-bar-bg-5 {
+  background-color: $alter-color-4;
+}
+.skillbar-bar-bg-6 {
+  background-color: $alter-color-7;
+}
+.skill-bar-percent {
+  width: 20%;
+  text-align: right;
+  font-size: $default-font-2;
+  font-weight: $font-weight-semi-bold;
+  color: $theme-color;
+  @media #{$laptop_m_four} {
+    position: absolute;
+    width: auto;
+    top: 0;
+    right: 0;
+  }
+}
+
+/*======== course-complete-bar ========*/
+.course-complete-bar {
+  .skillbar-title {
+    width: 8%;
+  }
+  .skill-bar-percent {
+    width: 5%;
+  }
+}
+
+/*======== course-complete-bar-2 ========*/
+.course-complete-bar-2 {
+  .skillbar-title {
+    width: 24%;
+    @media #{$laptop_m_four} {
+      width: 100%;
+    }
+  }
+  .skillbar-box {
+    width: 55%;
+    @media #{$laptop_m_four} {
+      width: 100%;
+    }
+  }
+}
+

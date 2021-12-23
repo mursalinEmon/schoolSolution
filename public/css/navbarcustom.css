@@ -1,0 +1,37 @@
+	.navbar-custom {
+	  background-color: #428bca;
+	}
+	#navcolor a{
+		color: #fff;
+	}
+	.footertext{
+	  color: #428bca;
+	  text-align: center;
+	}
+	.divrighttext{
+	  color: #428bca;
+		text-align: right;
+	}
+	.headertext{
+	  color: #428bca;
+	  text-align: center;
+	}
+	table tfoot{display:table-row-group;}
+
+@media print {
+   
+  body * {
+    visibility: hidden;
+  }
+  #printdiv, #printdiv * {
+    visibility: visible;
+  }
+  #printdiv {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    top: 0;
+  }
+
+  
+}

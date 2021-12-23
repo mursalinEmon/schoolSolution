@@ -1,0 +1,156 @@
+/*---------------- theme-btn ----------------*/
+.theme-btn {
+  font-size: $default-font-2;
+  text-transform: uppercase;
+  background-color: $theme-color-2;
+  color: $white;
+  padding: 0 30px 0 30px;
+  line-height: 48px;
+  @include border-radius(5px);
+  z-index: 1;
+  display: inline-block;
+  @include transition(0.3s);
+  border: 1px solid $theme-color-2;
+  font-weight: $font-weight-medium;
+  &:hover {
+    background-color: $white;
+    color: $theme-color-2;
+  }
+}
+/*===== theme-btn-light ======*/
+.theme-btn-light {
+  color: $theme-color-4;
+  padding-right: 20px;
+  padding-left: 20px;
+  line-height: 45px;
+  background-color: rgba(127, 136, 151, 0.1);
+  border: 1px solid rgba(127, 136, 151, 0.2);
+  text-transform: capitalize;
+  &:hover {
+    background-color: $theme-color-2;
+    color: $white;
+  }
+}
+/*===== theme-btn-hover-light ======*/
+.theme-btn-hover-light {
+  &:hover {
+    background-color: transparent;
+    border-color: $white;
+    color: $white;
+  }
+}
+/*===== icon-btn ======*/
+.icon-btn {
+  width: 43px;
+  height: 43px;
+  line-height: 41px;
+  text-align: center;
+  @include border-radius(50%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  font-size: $display-11;
+  &:hover {
+    background-color: $white;
+    border-color: $white;
+    color: $theme-color-2;
+  }
+}
+/*===== icon-element ======*/
+.icon-element {
+  color: $alter-color;
+  font-size: $display-5;
+  position: relative;
+  width: 80px;
+  height: 80px;
+  line-height: 85px;
+  @include border-radius(50%);
+  background-color: rgba(126, 60, 249, 0.1);
+  text-align: center;
+  @include transition(0.4s);
+  display: inline-block;
+}
+/*===== icon--element ======*/
+.icon--element {
+  width: 45px;
+  height: 45px;
+  line-height: 45px;
+  font-size: $display-10;
+}
+
+.icon-success {
+  background-color: $theme-color-2 !important;
+  border-color: $theme-color-2 !important;
+  color: $white !important;
+}
+
+.icon-error {
+  background-color: $alter-color-5 !important;
+  border-color: $alter-color-5 !important;
+  color: $white !important;
+}
+/*===== btn-text ======*/
+.btn-text {
+  color: rgba(255, 255, 255, 0.7);
+  @include transition(0.3s);
+  display: -webkit-flex;
+  display: -ms-flex;
+  display: flex;
+  -ms-flex-align: center;
+  align-items: center;
+  @media #{$small_mobile_one} {
+    display: block;
+    text-align: center;
+    margin-left: 0;
+    margin-top: 20px;
+  }
+  &:hover {
+    color: $white;
+    .icon-btn {
+      background-color: $white;
+      border-color: $white;
+      color: $theme-color-2;
+    }
+  }
+}
+.text-btn {
+  text-transform: capitalize;
+  color: $alter-color;
+  font-weight: $font-weight-medium;
+  @include transition(0.4s);
+}
+.play-button {
+  svg {
+    width: 70px;
+  }
+}
+
+/*===== link-collapsed =======*/
+.link-collapsed {
+  color: $theme-color-2;
+  display: -webkit-flex;
+  display: -ms-flex;
+  display: flex;
+  -ms-flex-align: center;
+  align-items: center;
+  @include transition(0.3s);
+  background-color: rgba(81, 190, 120, 0.1);
+  @include border-radius(30px);
+  padding: 4px 16px;
+  &:hover {
+    color: $white;
+    background-color: $theme-color-2;
+  }
+}
+.link-collapsed[aria-expanded="false"] .link-collapse-active,
+.link-collapsed[aria-expanded="false"] .la-minus {
+  display: none;
+}
+
+.link-collapsed[aria-expanded="true"] .link-collapse-active,
+.link-collapsed[aria-expanded="true"] .la-minus {
+  display: block;
+}
+
+.link-collapsed[aria-expanded="true"] .link-collapse-read-more,
+.link-collapsed[aria-expanded="true"] .la-plus {
+  display: none;
+}

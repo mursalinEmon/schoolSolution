@@ -1,0 +1,62 @@
+/*===== section-tab =====*/
+.section-tab {
+  .nav-tabs {
+    border: none;
+    li {
+      margin: 0 3px;
+      @media #{$large_mobile_four} {
+        margin-bottom: 5px;
+      }
+      .theme-btn {
+        color: $theme-color-2;
+        text-transform: capitalize;
+        padding-right: 17px;
+        padding-left: 17px;
+        line-height: 40px;
+        background-color: rgba(81, 190, 120, 0.1);
+        border: none;
+        &.active {
+          background-color: $theme-color-2;
+          color: $white;
+        }
+      }
+    }
+  }
+}
+
+/*==== section-tab-2 ====*/
+.section-tab-2 {
+  .nav-tabs {
+    border-bottom: 1px solid rgba(127, 136, 151, 0.2);
+    li {
+      margin-right: 14px;
+      padding-bottom: 14px;
+      a {
+        color: $theme-color-4;
+        position: relative;
+        padding-bottom: 19px;
+        &:after {
+          position: absolute;
+          content: "";
+          bottom: 3px;
+          left: 50%;
+          @include transform(translateX(-50%));
+          width: 50px;
+          height: 3px;
+          opacity: 0;
+          visibility: hidden;
+          background-color: $theme-color-2;
+          @include border-radius(4px 4px 0 0);
+          @include transition(0.3s);
+        }
+        &.active {
+          color: $theme-color-2;
+          &:after {
+            opacity: 1;
+            visibility: visible;
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,115 @@
+/*======= icon-box =========*/
+.icon-box {
+  background-color: $white;
+  @include border-radius(100px);
+  margin-bottom: 30px;
+  position: relative;
+  padding: 20px;
+  @include box-shadow(0 0 8px 0px rgba(0, 0, 0, 0.07));
+  @media #{$large_mobile_two} {
+    display: block !important;
+    text-align: center;
+    @include border-radius(8px);
+  }
+  .icon-element {
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+    font-size: $display-6;
+    margin-right: 20px;
+    @media #{$large_mobile_two} {
+      margin-right: auto;
+      margin-left: auto;
+      margin-bottom: 15px;
+    }
+  }
+  .info__title {
+    font-weight: $font-weight-medium;
+    font-size: $display-13;
+    color: $theme-color-4;
+  }
+  .info__count {
+    font-size: $display-9;
+    font-weight: $font-weight-bold;
+    color: $theme-color;
+  }
+}
+/*======= icon-box-layout-2 =========*/
+.icon-box-layout-2 {
+  @include border-radius(4px);
+  .info__title,
+  .info__count {
+    color: $white;
+  }
+  .icon-element {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: $white;
+    @include border-radius(4px);
+  }
+  &:hover {
+    .icon-element {
+      background-color: $white;
+      color: $theme-color;
+    }
+  }
+}
+
+/*======== info-box =========*/
+.icon-boxs {
+  .icon-element {
+    font-size: $display-7;
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+  }
+  .icon__title {
+    margin-top: 15px;
+    font-weight: $font-weight-semi-bold;
+    font-size: $display-12;
+  }
+  &:hover {
+    .icon-element {
+      background-color: $theme-color-2;
+      color: $white;
+    }
+  }
+}
+
+.icon-bg-1 {
+  color: $theme-color-2;
+  background-color: rgba(81,190, 120, 0.1);
+}
+.icon-bg-2 {
+  color: $alter-color-5;
+  background-color: rgba(221,73, 61, 0.1);
+}
+.icon-bg-3 {
+  color: $alter-color-6;
+  background-color: rgba(62,91, 153, 0.1);
+}
+
+.info-icon-box {
+  margin-bottom: 40px;
+  .icon-element {
+    width: 50px;
+    height: 50px;
+    line-height: 50px;
+    font-size: $display-8;
+    margin-bottom: 12px;
+  }
+  .widget-title {
+    font-size: $display-13;
+  }
+  &:hover {
+    .icon-element {
+      background-color: $theme-color-2;
+      color: $white;
+    }
+  }
+}
+
+
+
+
+
+

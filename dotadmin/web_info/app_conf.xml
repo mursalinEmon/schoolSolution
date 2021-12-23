@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<appconf>
+    <conf>
+        <libs>libs/</libs>
+        <url>/dotschool/dotadmin/</url>               <!--always start with front slashes eg. '/homedirectory' -->
+        <appname>DOT APP</appname>              <!-- Application Name -->
+        <webconf>web_info/web_conf.xml</webconf> <!-- Website mapping configuration file -->
+        <dbaconf>web_info/dba_conf.xml</dbaconf> <!-- DBA Operation configuration file -->
+        <viewconf>web_info/view_conf.xml</viewconf> <!-- Application view configuration file -->
+        <indexpage>adminlogin</indexpage>                <!-- Application landing page -->
+        <indexpageaction>init</indexpageaction>   <!-- Application landing page url value -->
+        <errorpage>error</errorpage>                <!-- Application error page -->
+        <errorpageaction>showerror</errorpageaction><!-- Application error page url value -->
+        <userimagelocation>./public/images/uploads/users/</userimagelocation><!-- Application user photo store location -->
+        <productimagelocation>./public/images/uploads/products/</productimagelocation><!-- Application products store location -->
+        <teacherimagelocation>./public/images/uploads/teachers/</teacherimagelocation><!-- Application products store location -->
+        <catimagelocation>./public/images/uploads/category/</catimagelocation>
+        <homeworklocation>./public/homework/</homeworklocation><!-- Application products store location -->
+        <hwanswerlocation>./public/homework/</hwanswerlocation><!-- Application products store location -->
+    </conf>    
+    <dbconf> <!-- self explanatory -->
+        <dbtype>mysql</dbtype>
+        <dbhost>localhost</dbhost>
+        <dbname>abldb1175</dbname>
+        <dbuser>root</dbuser>
+        <dbpass></dbpass>        
+    </dbconf>
+    <hashkey><!-- hash key through out the application encryption -->
+        <key>neverchangeit</key>
+    </hashkey>
+	<apikey><!-- 'dbshashkey' SHA-256 hash key -->
+        <key>36cfce7372fc99723569236e883dc4db39669cdf116a57d6d126e05fdea7be3c</key>
+    </apikey>	
+</appconf>

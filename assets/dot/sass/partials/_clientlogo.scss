@@ -1,0 +1,73 @@
+/*====================================================
+   clientlogo-area
+ ====================================================*/
+.clientlogo-area {
+  position: relative;
+  .stroke-line,
+  .stroke-line2 {
+    position: absolute;
+    top: 175px;
+    left: 50px;
+    width: 200px;
+    display: inline-block;
+    @include transform(rotate(-55deg));
+    opacity: 0.1;
+    .stroke__line {
+      background-color: $theme-color-4;
+      height: 2px;
+      display: block;
+      &:nth-child(1),
+      &:nth-child(2) {
+        margin-bottom: 18px;
+      }
+    }
+  }
+  .stroke-line2 {
+    left: auto;
+    right: 50px;
+    bottom: 0;
+    top: auto;
+    @include transform(rotate(55deg));
+  }
+}
+
+/*===== client-logo-item =======*/
+.client-logo-item {
+  display: inline-block;
+  img {
+    -webkit-filter: grayscale(100%);
+    filter: grayscale(100%);
+    @include transition(0.3s);
+  }
+  &:hover {
+    img {
+      -webkit-filter: grayscale(0);
+      filter: grayscale(0);
+    }
+  }
+}
+
+.client-logo-2 {
+  @media #{$tab_device} {
+    margin-top: 50px;
+  }
+   @media #{$large_mobile} {
+    margin-top: 50px;
+  }
+   @media #{$small_mobile} {
+    margin-top: 50px;
+  }
+  .col-lg-4 {
+    @media #{$large_mobile} {
+      width: 50%;
+    }
+  }
+}
+/*====== client-logo-item 2 ========*/
+.client-logo-item-2 {
+  padding: 10px 0;
+  img {
+    -webkit-filter: grayscale(0);
+    filter: grayscale(0);
+  }
+}

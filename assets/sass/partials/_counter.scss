@@ -1,0 +1,74 @@
+/*-===============================
+    FUNFACT AREA
+===============================-*/
+.funfact-area {
+  position: relative;
+  z-index: 1;
+  @media #{$tab_device} {
+    padding-bottom: 54px;
+  }
+  @media #{$large_mobile} {
+    padding-bottom: 54px;
+  }
+  @media #{$small_mobile} {
+    padding-bottom: 54px;
+  }
+  &:before,
+  &:after {
+    position: absolute;
+    content: '';
+    bottom: 0;
+    left: 0;
+    width: 200px;
+    height: 200px;
+    background-position: center;
+    background-image: url("../images/dots.png");
+    @include border-radius(50%);
+    @include transform(rotate(10deg));
+    background-size: cover;
+    opacity: 0.2;
+  }
+  &:after {
+    top: -80px;
+    left: auto;
+    bottom: auto;
+    right: 0;
+  }
+}
+
+.counter-item {
+  margin-bottom: 30px;
+  position: relative;
+  @media #{$large_mobile} {
+   margin-bottom: 50px;
+  }
+  .count__icon {
+    position: absolute;
+    top: -20px;
+    left: 35px;
+    font-size: $display-3;
+    color: rgba(127, 136, 151, 0.1);
+    @media #{$large_mobile} {
+      left: 50%;
+      @include transform(translateX(-50%));
+      top: -35px;
+    }
+    @media #{$small_mobile} {
+      left: 50%;
+      @include transform(translateX(-50%));
+      top: -35px;
+    }
+  }
+  .count__title {
+    font-size: $display-5;
+    font-weight: $font-weight-semi-bold;
+    margin-bottom: 10px;
+    color: $alter-color;
+  }
+  .count__meta {
+    font-size: $default-font-2;
+    font-weight: $font-weight-medium;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+}

@@ -1,0 +1,136 @@
+/*======== info-box =========*/
+.info-box {
+  background-color: $white;
+  @include box-shadow(0 0 40px rgba(14,16,48,.05));
+  padding: 50px 40px 42px 40px;
+  @include border-radius(4px);
+  @include transition(0.4s);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 30px;
+  z-index: 1;
+  .hover-overlay {
+    &:before,
+    &:after {
+      position: absolute;
+      content: '';
+      top: 50%;
+      left: -90px;
+      width: 540px;
+      height: 540px;
+      z-index: -1;
+      transition: all .5s ease;
+      @include transform(translateY(100%) rotate(10deg));
+      background-color: rgba(255, 255, 255, 0.2);
+      @media #{$large_mobile} {
+        width: 640px;
+      }
+    }
+    &:after {
+      top: 70%;
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+  }
+  .info__title {
+    font-weight: $font-weight-bold;
+    text-transform: capitalize;
+    font-size: $display-11;
+    margin-top: 25px;
+    margin-bottom: 20px;
+    @include transition(0.3s);
+  }
+  .info__text {
+    line-height: 28px;
+    margin-bottom: 20px;
+    @include transition(0.4s);
+  }
+  &:before {
+    position: absolute;
+    content: '';
+    top: 30%;
+    left: -90px;
+    width: 540px;
+    height: 540px;
+    background-color: rgba(255, 255, 255, 0.1);
+    z-index: -1;
+    transition: all .5s ease;
+    @include transform(translateY(100%) rotate(10deg));
+    @media #{$large_mobile} {
+      width: 640px;
+    }
+  }
+  &:hover {
+    border-color: $theme-color-2;
+    background-color: $theme-color-2;
+    .info__title,
+    .info__text,
+    .text-btn {
+      color: $white;
+    }
+    .icon-element {
+      color: $theme-color-2;
+      background-color: $white;
+    }
+    &:before {
+      transition-delay: .2s;
+      @include transform(translateY(0) rotate(10deg));
+    }
+    .hover-overlay {
+      &:before,
+      &:after {
+        @include transform(translateY(0) rotate(10deg));
+      }
+      &:after {
+        transition-delay: .1s;
+      }
+    }
+  }
+}
+
+.info-box-color-2 {
+  .icon-element {
+    color: $alter-color-2;
+    background-color: rgba(246, 138, 3, 0.1);
+  }
+  .text-btn {
+    color: $alter-color-2;
+  }
+}
+
+.info-box-color-3 {
+  .icon-element {
+    color: $alter-color-3;
+    background-color: rgba(53, 143, 247, 0.1);
+  }
+  .text-btn {
+    color: $alter-color-3;
+  }
+}
+/*======== info-box-layout-2 =========*/
+.info-area {
+  position: relative;
+  &:after {
+    position: absolute;
+    content: "";
+    bottom: -30px;
+    left: 50%;
+    @include transform(translateX(-50%) rotate(45deg));
+    width: 60px;
+    height: 60px;
+    background-color: $theme-color-5;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
